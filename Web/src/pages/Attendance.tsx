@@ -207,7 +207,6 @@ export function AttendancePage() {
 	const [rangeEndDate, setRangeEndDate] = useState<string>(() => getTodayYmdManila());
 	const [isDateRangeOpen, setIsDateRangeOpen] = useState(false);
 	const [currentPage, setCurrentPage] = useState(1);
-	const [subscriptionConnected, setSubscriptionConnected] = useState(false);
 	const [, setLastUpdateTime] = useState<Date | null>(null);
 	const recordsPerPage = 50;
 	const currentUser = useAppSelector((s) => s.auth.user);
@@ -370,15 +369,13 @@ export function AttendancePage() {
 	}, [data, selectedRange]);
 
 	// Real-time subscription for new records
-	const { error: subscriptionError, loading: subscriptionLoading } = useSubscription(
+	useSubscription(
 		ATTENDANCE_RECORD_ADDED,
 		{
 			onData: ({ data: subData, error: subError }: { data?: unknown; error?: Error }) => {
 				if (subError) {
-					setSubscriptionConnected(false);
 					return;
 				}
-				setSubscriptionConnected(true);
 				const raw = (subData as { data?: { attendanceRecordAdded?: AttendanceRecord }; attendanceRecordAdded?: AttendanceRecord })?.data?.attendanceRecordAdded ?? (subData as { attendanceRecordAdded?: AttendanceRecord })?.attendanceRecordAdded;
 				const newRecord = raw as AttendanceRecord | undefined;
 				if (newRecord) {
@@ -393,23 +390,15 @@ export function AttendancePage() {
 					});
 				}
 			},
-			onError: () => {
-				setSubscriptionConnected(false);
-			},
-			onComplete: () => {
-				setSubscriptionConnected(false);
-			},
 		}
 	);
 
 	// Also subscribe to batch updates
-	const { error: batchError } = useSubscription(ATTENDANCE_UPDATED, {
+	useSubscription(ATTENDANCE_UPDATED, {
 		onData: ({ data: subData, error: subError }: { data?: { data?: { attendanceUpdated?: AttendanceRecord[] } }; error?: Error }) => {
 			if (subError) {
-				setSubscriptionConnected(false);
 				return;
 			}
-			setSubscriptionConnected(true);
 			const batchData = subData?.data?.attendanceUpdated;
 			if (batchData && batchData.length > 0) {
 				const newRecords = batchData;
@@ -429,19 +418,7 @@ export function AttendancePage() {
 				});
 			}
 		},
-		onError: () => {
-			setSubscriptionConnected(false);
-		},
 	});
-
-	// Update subscription status based on actual connection state
-	useEffect(() => {
-		// Check if subscription is actually connected (not loading and no errors)
-		const isConnected = !subscriptionLoading && !subscriptionError && !batchError;
-		if (isConnected !== subscriptionConnected) {
-			setSubscriptionConnected(isConnected);
-		}
-	}, [subscriptionLoading, subscriptionError, batchError, subscriptionConnected]);
 
 	// Display records exactly as fetched from the database (no client-side direction manipulation)
 	const sortedRecords = useMemo(() => {
@@ -776,8 +753,9 @@ export function AttendancePage() {
 	const todaysRecordsCount = dataToday?.getAttendanceRecords?.totalCount ?? 0;
 
 	const totalPages = Math.ceil(totalCount / recordsPerPage);
-	const showBiometricDisconnectedNotice =
-		!subscriptionLoading && !subscriptionConnected;
+	// This query reads the real attendance table. Its result is a trustworthy signal for
+	// the deployed API -> attendance MySQL data path; a WebSocket alone is not.
+	const showBiometricDisconnectedNotice = Boolean(error);
 
 	const applyTodayRange = () => {
 		const today = getTodayYmdManila();
@@ -1030,37 +1008,6 @@ export function AttendancePage() {
 		);
 	}
 
-	// With errorPolicy: 'all', GraphQL field errors still set `error` but `data` may be a non-empty object
-	// (e.g. { getAttendanceRecords: null }). `error && !data` would miss that and show an empty page.
-	if (error && !loading && !data?.getAttendanceRecords) {
-		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<div className="text-center">
-					<div className="text-red-500 mb-4">
-						<svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
-					</div>
-					<h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">
-						Unable to Load Attendance Records
-					</h2>
-					<p className="text-[var(--text-secondary)] mb-4">{error.message}</p>
-					<button
-						onClick={() => refetch()}
-						className="px-4 py-2 bg-[var(--primary-yellow)] text-black rounded-lg hover:opacity-90 transition-opacity"
-					>
-						Try Again
-					</button>
-				</div>
-			</div>
-		);
-	}
-
 	return (
 		<div className="p-6 space-y-6">
 			{/* Header */}
@@ -1104,13 +1051,19 @@ export function AttendancePage() {
 							<div className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.18)]">
 								<WifiOff className="h-3.5 w-3.5 text-[#F87171]" />
 							</div>
-							<div>
-								<p className="text-xs font-semibold text-[#FCA5A5]">Biometric connection unavailable</p>
+							<div className="min-w-0 flex-1">
+								<p className="text-xs font-semibold text-[#FCA5A5]">Biometric attendance service unavailable</p>
 								<p className="text-xs text-[var(--text-secondary)]">
-									Live biometric logs are disabled for now. Connect the biometric device to
-									resume real-time attendance monitoring.
+									The system cannot reach the attendance database. Restore the biometric/iVMS-to-MySQL connection to resume live attendance monitoring.
 								</p>
 							</div>
+							<button
+								type="button"
+								onClick={() => void refetch().catch(() => undefined)}
+								className="shrink-0 rounded-lg border border-[rgba(239,68,68,0.45)] px-3 py-1.5 text-xs font-medium text-[#FCA5A5] transition-colors hover:bg-[rgba(239,68,68,0.12)]"
+							>
+								Retry
+							</button>
 						</div>
 					</div>
 				) : null}
