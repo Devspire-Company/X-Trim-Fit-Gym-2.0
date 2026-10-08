@@ -1,0 +1,116 @@
+# Membership Queries
+query GetAllMemberships {
+	getMemberships {
+		id
+		name
+		monthlyPrice
+		description
+		features
+		status
+		statusEffectiveAt
+		durationType
+		monthDuration
+		createdAt
+		updatedAt
+	}
+}
+
+query GetActiveMemberships {
+	getMemberships(status: ACTIVE) {
+		id
+		name
+		monthlyPrice
+		description
+		features
+		status
+		statusEffectiveAt
+		durationType
+		monthDuration
+		createdAt
+		updatedAt
+	}
+}
+
+query GetCurrentMembership {
+	getCurrentMembership {
+		id
+		clientId
+		membershipId
+		membership {
+			id
+			name
+			monthlyPrice
+			description
+			features
+			durationType
+			monthDuration
+		}
+		priceAtPurchase
+		startedAt
+		expiresAt
+		monthDuration
+		status
+		createdAt
+		updatedAt
+	}
+}
+
+mutation DirectSubscribeMember($input: DirectSubscribeInput!) {
+	directSubscribeMember(input: $input) {
+		id
+		clientId
+		membershipId
+		membership {
+			id
+			name
+			monthlyPrice
+		}
+		priceAtPurchase
+		startedAt
+		expiresAt
+		monthDuration
+		dayDuration
+		status
+		createdAt
+	}
+}
+
+mutation UpdateMembershipTransactionDuration($input: UpdateMembershipTransactionDurationInput!) {
+	updateMembershipTransactionDuration(input: $input) {
+		id
+		clientId
+		membershipId
+		membership {
+			id
+			name
+			monthlyPrice
+		}
+		priceAtPurchase
+		startedAt
+		expiresAt
+		monthDuration
+		dayDuration
+		lastAdjustedReason
+		lastAdjustedAt
+		status
+		createdAt
+		updatedAt
+	}
+}
+
+# Subscriptions
+subscription MembershipsUpdated {
+	membershipsUpdated {
+		id
+		name
+		monthlyPrice
+		description
+		features
+		status
+		statusEffectiveAt
+		durationType
+		monthDuration
+		createdAt
+		updatedAt
+	}
+}

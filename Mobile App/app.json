@@ -1,0 +1,70 @@
+{
+	"expo": {
+		"name": "XTrimFitGym",
+		"slug": "XTrimFitGym",
+		"version": "1.0.0",
+		"orientation": "portrait",
+		"icon": "./assets/logos/XTFG_icon_square_1025.png",
+		"scheme": "xtrimfitnessgymapp",
+		"userInterfaceStyle": "automatic",
+		"newArchEnabled": true,
+		"ios": {
+			"supportsTablet": true,
+			"infoPlist": {
+				"NSAppTransportSecurity": {
+					"NSExceptionDomains": {
+						"localhost": {
+							"NSExceptionAllowsInsecureHTTPLoads": true
+						}
+					}
+				}
+			}
+		},
+		"android": {
+			"package": "com.devspirecompany.XTrimFitGym",
+			"softwareKeyboardLayoutMode": "resize",
+			"adaptiveIcon": {
+				"backgroundColor": "#13161f",
+				"foregroundImage": "./assets/logos/XTFG_icon_square_1025.png"
+			},
+			"edgeToEdgeEnabled": true,
+			"predictiveBackGestureEnabled": false
+		},
+		"web": {
+			"output": "static",
+			"favicon": "./assets/logos/XTFG_icon_square_1025.png",
+			"bundler": "metro"
+		},
+		"plugins": [
+			"expo-router",
+			"expo-build-properties",
+			[
+				"expo-splash-screen",
+				{
+					"image": "./assets/logos/XTFG_icon_square_1025.png",
+					"imageWidth": 200,
+					"resizeMode": "contain",
+					"backgroundColor": "#13161f",
+					"dark": {
+						"backgroundColor": "#13161f"
+					}
+				}
+			],
+			"expo-secure-store"
+		],
+		"experiments": {
+			"typedRoutes": true,
+			"reactCompiler": true
+		},
+		"updates": {
+			"enabled": false,
+			"checkAutomatically": "NEVER",
+			"fallbackToCacheTimeout": 0
+		},
+		"extra": {
+			"eas": {
+				"projectId": "8cee07cd-6b07-4839-84d0-ae905b4b87fd"
+			}
+		}
+	}
+}

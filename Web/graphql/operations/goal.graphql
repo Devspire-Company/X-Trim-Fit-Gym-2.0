@@ -1,0 +1,9 @@
+query GetGoalsForClient($clientId: ID!, $status: GoalStatus) {
+	getGoals(clientId: $clientId, status: $status) {
+		id
+		clientId
+		title
+		goalType
+		status
+	}
+}

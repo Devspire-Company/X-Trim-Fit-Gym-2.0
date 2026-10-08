@@ -1,0 +1,28 @@
+query GetMyNotifications($limit: Int, $offset: Int, $unreadOnly: Boolean) {
+	getMyNotifications(limit: $limit, offset: $offset, unreadOnly: $unreadOnly) {
+		id
+		recipientId
+		recipientRole
+		type
+		title
+		message
+		dedupeKey
+		metadataJson
+		isRead
+		readAt
+		createdAt
+		updatedAt
+	}
+}
+
+mutation MarkNotificationRead($id: ID!) {
+	markNotificationRead(id: $id) {
+		id
+		isRead
+		readAt
+	}
+}
+
+mutation MarkAllMyNotificationsRead {
+	markAllMyNotificationsRead
+}

@@ -1,0 +1,248 @@
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@as-integrations/express5';
+import express from 'express';
+import cors from 'cors';
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
+import { useServer } from 'graphql-ws/use/ws';
+import connectDb from './database/connectDb.js';
+import { connectMySQL } from './database/mysql/connectMysql.js';
+import { attendanceMonitor } from './services/attendance-monitor.js';
+import { notificationAutomationService } from './services/notification-automation.js';
+import cookieParser from 'cookie-parser';
+import schema from './graphql/schema.js';
+import authContext from './context/auth-context.js';
+import { validateRuntimeEnvironment } from './config/environment.js';
+import { getMySQLConnection, closeMySQLConnection } from './database/mysql/connectMysql.js';
+import mongoose from 'mongoose';
+import { graphqlRateLimit } from './middleware/rate-limit.js';
+
+const port = Number(process.env.PORT) || 8000;
+
+const server = new ApolloServer({ schema });
+const app = express();
+const httpServer = createServer(app);
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
+app.use((_req, res, next) => {
+	res.setHeader('X-Content-Type-Options', 'nosniff');
+	res.setHeader('X-Frame-Options', 'DENY');
+	res.setHeader('Referrer-Policy', 'no-referrer');
+	res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+	next();
+});
+
+const explicitAllowedOrigins = (
+	process.env.CORS_ORIGIN?.split(',')
+		.map((origin) => origin.trim())
+		.filter(Boolean) ?? []
+);
+
+const defaultAllowedOrigins = [
+	'http://localhost:3000',
+	'http://localhost:5173',
+	'http://localhost:8081',
+	'exp://localhost:8081',
+	'https://xtrimfitgym.website',
+	'https://www.xtrimfitgym.website',
+];
+
+const allowedOrigins = [
+	...new Set(
+		(explicitAllowedOrigins.length > 0
+			? explicitAllowedOrigins
+			: defaultAllowedOrigins
+		).map((origin) => origin.trim())
+	),
+];
+
+// CORS configuration
+app.use(
+	cors({
+		origin: (origin, callback) => {
+			if (!origin) return callback(null, true);
+			if (allowedOrigins.includes(origin)) return callback(null, true);
+			return callback(new Error('CORS blocked for this origin'));
+		},
+		credentials: true,
+		methods: ['GET', 'POST', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
+	}),
+);
+
+async function startServer() {
+	validateRuntimeEnvironment();
+	await server.start();
+	await connectDb();
+	// Start automated notification checks (expiry + inactivity) once DB is ready.
+	notificationAutomationService.start();
+
+	// Middleware order matters! cookieParser must come before expressMiddleware
+	app.use(cookieParser()); // Global cookie parser
+	app.use(express.json({ limit: '1mb' }));
+
+	app.get('/health', (_req, res) => {
+		res.status(200).json({ status: 'ok' });
+	});
+	app.get('/ready', (_req, res) => {
+		const mongoReady = mongoose.connection.readyState === 1;
+		const mysqlConnected = getMySQLConnection() !== null;
+		res.status(mongoReady ? 200 : 503).json({
+			status: mongoReady ? 'ready' : 'not-ready',
+			components: {
+				mongo: mongoReady ? 'connected' : 'disconnected',
+				attendanceMysql: mysqlConnected ? 'connected' : 'degraded',
+			},
+		});
+	});
+
+	// Log incoming GraphQL requests (so Render/logs show traffic)
+	app.use('/graphql', (req, _res, next) => {
+		if (req.method !== 'OPTIONS') {
+			console.log(`[API] ${req.method} /graphql`);
+		}
+		next();
+	});
+	app.use('/graphql', graphqlRateLimit);
+
+	// Upload routes (must come before GraphQL)
+	const uploadRouter = await import('./routes/upload.js');
+	app.use('/api/upload', uploadRouter.default);
+	const exercisesRouter = await import('./routes/exercises.js');
+	app.use('/api/exercises', exercisesRouter.default);
+
+	app.use(
+		'/graphql',
+		expressMiddleware(server, {
+			context: ({ req, res }) => authContext({ req, res }),
+		}),
+	);
+
+	// WebSocket server for subscriptions
+	const wsServer = new WebSocketServer({
+		server: httpServer,
+		path: '/graphql',
+	});
+
+	const serverCleanup = useServer(
+		{
+			schema,
+			context: async (ctx) => {
+				// Extract auth token from connection params
+				const authHeader = ctx.connectionParams?.authorization as
+					| string
+					| undefined;
+				const token = authHeader?.replace('Bearer ', '') || '';
+				// Create a mock request/response for auth context
+				const mockReq = {
+					headers: { authorization: `Bearer ${token}` },
+				} as any;
+				const mockRes = {} as any;
+				const authCtx = await authContext({ req: mockReq, res: mockRes });
+				// Also add user directly for compatibility with subscription resolvers
+				return {
+					...authCtx,
+					user: authCtx.auth.user, // Add user for backward compatibility
+				};
+			},
+		},
+		wsServer,
+	);
+
+	// Listen on all network interfaces (0.0.0.0) to allow connections from devices
+	httpServer.listen(port, '0.0.0.0', () => {
+		console.log(`Server is up and running @ http://localhost:${port}/graphql`);
+		console.log(
+			`Server accessible from network @ http://0.0.0.0:${port}/graphql`,
+		);
+		console.log(`WebSocket server running @ ws://localhost:${port}/graphql`);
+		console.log('\nTo connect from devices:');
+		console.log(`  - Android Emulator: http://10.0.2.2:${port}/graphql`);
+		console.log(`  - iOS Simulator: http://localhost:${port}/graphql`);
+		console.log(`  - Physical devices: http://YOUR_LOCAL_IP:${port}/graphql`);
+	});
+
+	// Initialize MySQL/attendance in the background so API boot is fast.
+	// This prevents login requests from timing out while MySQL wakes up.
+	void (async () => {
+		const mysqlConfig = {
+			host: process.env.MYSQLHOST || 'mysql.railway.internal',
+			port: Number(process.env.MYSQLPORT) || 3306,
+			user: process.env.MYSQLUSER || 'root',
+			password: process.env.MYSQLPASSWORD || '',
+			database: process.env.MYSQLDATABASE || 'railway',
+		};
+
+		const { setMySQLConfig } = await import('./database/mysql/connectMysql.js');
+		setMySQLConfig(mysqlConfig);
+
+		try {
+			await connectMySQL(mysqlConfig);
+			console.log('✅ MySQL connected for attendance monitoring');
+
+			try {
+				const { ensureMySQLConnection } = await import('./database/mysql/connectMysql.js');
+				const mc = await ensureMySQLConnection();
+				const [rows] = await mc.execute('SELECT COUNT(*) AS c FROM attendance');
+				const row = (rows as { c: number }[])[0];
+				const n = row != null && typeof row.c === 'number' ? row.c : Number(row?.c);
+				console.log(`📊 attendance table row count: ${Number.isFinite(n) ? n : 'unknown'}`);
+			} catch (countErr: any) {
+				console.warn(
+					'⚠️  Could not read attendance row count (table missing?):',
+					countErr?.message || countErr,
+				);
+			}
+
+			try {
+				await attendanceMonitor.initialize();
+				attendanceMonitor.startPolling();
+				console.log(
+					'✅ Attendance monitor started - listening for real-time updates',
+				);
+			} catch (initError) {
+				console.warn(
+					'⚠️  Attendance monitor initialization had issues, but polling will continue',
+				);
+				console.warn(
+					'   It will automatically detect when the attendance table is created.',
+				);
+				attendanceMonitor.startPolling();
+			}
+		} catch (error: any) {
+			console.error(
+				'⚠️  Failed to connect to MySQL at startup:',
+				error?.message || error,
+			);
+			console.error(
+				'   The server will continue, but attendance features will not be available.',
+			);
+			console.error(
+				'   Connection will be retried when attendance queries are made.',
+			);
+			console.error(
+				`   Config: ${mysqlConfig.host}:${mysqlConfig.port}/${mysqlConfig.database}`,
+			);
+			attendanceMonitor.startPolling();
+		}
+	})();
+
+	let shuttingDown = false;
+	const shutdown = async (signal: string) => {
+		if (shuttingDown) return;
+		shuttingDown = true;
+		console.log(`[API] ${signal} received; shutting down gracefully`);
+		notificationAutomationService.stop();
+		attendanceMonitor.stopPolling();
+		await serverCleanup.dispose();
+		await server.stop();
+		await closeMySQLConnection().catch(() => undefined);
+		await mongoose.disconnect().catch(() => undefined);
+		await new Promise<void>((resolve) => httpServer.close(() => resolve()));
+	};
+
+	process.once('SIGTERM', () => void shutdown('SIGTERM'));
+	process.once('SIGINT', () => void shutdown('SIGINT'));
+}
+
+startServer();

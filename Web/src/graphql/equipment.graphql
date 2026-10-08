@@ -1,0 +1,199 @@
+query GetEquipments($includeArchived: Boolean) {
+  getEquipments(includeArchived: $includeArchived) {
+    id
+    name
+    imageUrl
+    description
+    notes
+    acquiredAt
+    sortOrder
+    status
+    quantity
+    maintenanceStartedAt
+    isArchived
+    archivedAt
+    archiveReason
+    lifecycleLogs {
+      action
+      notes
+      status
+      changedAt
+      changedById
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+query GetEquipmentsLegacy {
+  getEquipments {
+    id
+    name
+    imageUrl
+    description
+    notes
+    sortOrder
+    status
+    createdAt
+    updatedAt
+  }
+}
+
+query GetEquipment($id: ID!) {
+  getEquipment(id: $id) {
+    id
+    name
+    imageUrl
+    description
+    notes
+    acquiredAt
+    sortOrder
+    status
+    quantity
+    maintenanceStartedAt
+    isArchived
+    archivedAt
+    archiveReason
+    lifecycleLogs {
+      action
+      notes
+      status
+      changedAt
+      changedById
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation CreateEquipment($input: CreateEquipmentInput!) {
+  createEquipment(input: $input) {
+    id
+    name
+    imageUrl
+    description
+    notes
+    acquiredAt
+    sortOrder
+    status
+    quantity
+    maintenanceStartedAt
+    isArchived
+    archivedAt
+    archiveReason
+    lifecycleLogs {
+      action
+      notes
+      status
+      changedAt
+      changedById
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation CreateEquipmentLegacy($input: CreateEquipmentInput!) {
+  createEquipment(input: $input) {
+    id
+    name
+    imageUrl
+    description
+    notes
+    sortOrder
+    status
+    quantity
+    maintenanceStartedAt
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateEquipment($id: ID!, $input: UpdateEquipmentInput!) {
+  updateEquipment(id: $id, input: $input) {
+    id
+    name
+    imageUrl
+    description
+    notes
+    acquiredAt
+    sortOrder
+    status
+    isArchived
+    archivedAt
+    archiveReason
+    lifecycleLogs {
+      action
+      notes
+      status
+      changedAt
+      changedById
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+mutation UpdateEquipmentLegacy($id: ID!, $input: UpdateEquipmentInput!) {
+  updateEquipment(id: $id, input: $input) {
+    id
+    name
+    imageUrl
+    description
+    notes
+    sortOrder
+    status
+    quantity
+    maintenanceStartedAt
+    createdAt
+    updatedAt
+  }
+}
+
+mutation AdjustEquipmentStock($input: AdjustEquipmentStockInput!) {
+  adjustEquipmentStock(input: $input) {
+    id
+    quantity
+    status
+    maintenanceStartedAt
+    updatedAt
+  }
+}
+
+mutation ArchiveEquipment($id: ID!, $reason: String!) {
+  archiveEquipment(id: $id, reason: $reason) {
+    id
+    isArchived
+    archivedAt
+    archiveReason
+    lifecycleLogs {
+      action
+      notes
+      status
+      changedAt
+      changedById
+    }
+    updatedAt
+  }
+}
+
+mutation UnarchiveEquipment($id: ID!) {
+  unarchiveEquipment(id: $id) {
+    id
+    isArchived
+    archivedAt
+    archiveReason
+    lifecycleLogs {
+      action
+      notes
+      status
+      changedAt
+      changedById
+    }
+    updatedAt
+  }
+}
+
+mutation DeleteEquipment($id: ID!) {
+  deleteEquipment(id: $id)
+}

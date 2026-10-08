@@ -1,0 +1,173 @@
+query SearchWalkInClients($query: String, $limit: Int, $offset: Int) {
+	searchWalkInClients(query: $query, limit: $limit, offset: $offset) {
+		id
+		firstName
+		middleName
+		lastName
+		phoneNumber
+		email
+		gender
+		notes
+		ageYears
+		minorWaiverGuardianName
+		minorWaiverAcceptedAt
+		createdAt
+		updatedAt
+	}
+}
+
+query WalkInPaymentSettings {
+	walkInPaymentSettings {
+		defaultPaymentPesos
+	}
+}
+
+query WalkInAttendanceLogs($filter: WalkInLogsFilter!, $pagination: WalkInPagination) {
+	walkInAttendanceLogs(filter: $filter, pagination: $pagination) {
+		totalCount
+		logs {
+			id
+			timedInAt
+			localDate
+			payment
+			createdAt
+			walkInClient {
+				id
+				firstName
+				middleName
+				lastName
+				phoneNumber
+				email
+				gender
+				notes
+				ageYears
+				minorWaiverGuardianName
+				minorWaiverAcceptedAt
+				createdAt
+				updatedAt
+			}
+		}
+	}
+}
+
+query WalkInStats {
+	walkInStats {
+		totalWalkInAccounts
+		totalTimeInRecords
+	}
+}
+
+query WalkInAccountsOverview($pagination: WalkInPagination) {
+	walkInAccountsOverview(pagination: $pagination) {
+		totalWalkInAccounts
+		totalTimeInRecords
+		rows {
+			timeInCount
+			client {
+				id
+				firstName
+				middleName
+				lastName
+				phoneNumber
+				email
+				gender
+				notes
+				ageYears
+				minorWaiverGuardianName
+				minorWaiverAcceptedAt
+				createdAt
+				updatedAt
+			}
+		}
+	}
+}
+
+query WalkInLogsByClient($walkInClientId: ID!, $pagination: WalkInPagination) {
+	walkInLogsByClient(walkInClientId: $walkInClientId, pagination: $pagination) {
+		totalCount
+		logs {
+			id
+			timedInAt
+			localDate
+			payment
+			createdAt
+			walkInClient {
+				id
+				firstName
+				middleName
+				lastName
+				phoneNumber
+				email
+				gender
+				notes
+				ageYears
+				minorWaiverGuardianName
+				minorWaiverAcceptedAt
+				createdAt
+				updatedAt
+			}
+		}
+	}
+}
+
+mutation UpdateWalkInPaymentSettings($paymentPesos: Float!) {
+	updateWalkInPaymentSettings(paymentPesos: $paymentPesos) {
+		defaultPaymentPesos
+	}
+}
+
+mutation CreateWalkInClient($input: CreateWalkInClientInput!, $timeInNow: Boolean!) {
+	createWalkInClient(input: $input, timeInNow: $timeInNow) {
+		client {
+			id
+			firstName
+			middleName
+			lastName
+			phoneNumber
+			email
+			gender
+			notes
+			ageYears
+			minorWaiverGuardianName
+			minorWaiverAcceptedAt
+		}
+		log {
+			id
+			timedInAt
+			localDate
+			payment
+		}
+	}
+}
+
+mutation WalkInTimeIn($walkInClientId: ID!, $at: String) {
+	walkInTimeIn(walkInClientId: $walkInClientId, at: $at) {
+		id
+		timedInAt
+		localDate
+		payment
+		walkInClient {
+			id
+			firstName
+			lastName
+		}
+	}
+}
+
+mutation UpdateWalkInClient($walkInClientId: ID!, $input: UpdateWalkInClientInput!) {
+	updateWalkInClient(walkInClientId: $walkInClientId, input: $input) {
+		id
+		firstName
+		middleName
+		lastName
+		phoneNumber
+		email
+		gender
+		notes
+		ageYears
+		minorWaiverGuardianName
+		minorWaiverAcceptedAt
+		createdAt
+		updatedAt
+	}
+}

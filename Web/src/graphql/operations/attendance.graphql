@@ -1,0 +1,60 @@
+query GetAttendanceRecords($filter: AttendanceFilter, $pagination: AttendancePagination) {
+  getAttendanceRecords(filter: $filter, pagination: $pagination) {
+    records {
+      id
+      authDateTime
+      authDate
+      authTime
+      direction
+      deviceName
+      deviceSerNum
+      personName
+      cardNo
+    }
+    totalCount
+    hasMore
+  }
+}
+
+query GetAttendanceRecord($id: String!) {
+  getAttendanceRecord(id: $id) {
+    id
+    authDateTime
+    authDate
+    authTime
+    direction
+    deviceName
+    deviceSerNum
+    personName
+    cardNo
+  }
+}
+
+subscription AttendanceRecordAdded {
+  attendanceRecordAdded {
+    id
+    authDateTime
+    authDate
+    authTime
+    direction
+    deviceName
+    deviceSerNum
+    personName
+    cardNo
+  }
+}
+
+subscription AttendanceUpdated {
+  attendanceUpdated {
+    id
+    authDateTime
+    authDate
+    authTime
+    direction
+    deviceName
+    deviceSerNum
+    personName
+    cardNo
+  }
+}
+

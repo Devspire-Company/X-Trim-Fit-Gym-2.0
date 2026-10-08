@@ -1,0 +1,33 @@
+query GetReportDownloadLogs($limit: Int, $offset: Int, $reportType: ReportType) {
+	getReportDownloadLogs(limit: $limit, offset: $offset, reportType: $reportType) {
+		id
+		reportType
+		format
+		downloadedById
+		downloadedByRole
+		downloadedBy {
+			id
+			firstName
+			lastName
+			email
+		}
+		fileName
+		filterSummary
+		metadataJson
+		dateRange {
+			startDate
+			endDate
+		}
+		createdAt
+	}
+}
+
+mutation LogReportDownload($input: LogReportDownloadInput!) {
+	logReportDownload(input: $input) {
+		id
+		reportType
+		format
+		downloadedById
+		createdAt
+	}
+}

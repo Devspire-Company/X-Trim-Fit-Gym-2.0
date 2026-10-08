@@ -1,0 +1,12 @@
+**/node_modules/
+**/dist/
+**/.expo/
+**/.expo-export-check/
+**/.env
+**/.env.*
+!**/.env.example
+**/*.tsbuildinfo
+**/.tmp-*
+coverage/
+.DS_Store
+Thumbs.db

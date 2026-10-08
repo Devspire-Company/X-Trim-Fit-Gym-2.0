@@ -1,0 +1,94 @@
+query GetPendingSubscriptionRequests {
+	getPendingSubscriptionRequests {
+		id
+		memberId
+		member {
+			id
+			firstName
+			lastName
+			email
+		}
+		membershipId
+		membership {
+			id
+			name
+			monthlyPrice
+			description
+			features
+			status
+			durationType
+			monthDuration
+		}
+		status
+		requestedAt
+		createdAt
+		updatedAt
+	}
+}
+
+query GetAllSubscriptionRequests {
+	getAllSubscriptionRequests {
+		id
+		memberId
+		member {
+			id
+			firstName
+			lastName
+			email
+		}
+		membershipId
+		membership {
+			id
+			name
+			monthlyPrice
+			description
+			features
+			status
+			durationType
+			monthDuration
+		}
+		status
+		requestedAt
+		approvedAt
+		approvedBy {
+			id
+			firstName
+			lastName
+			email
+		}
+		rejectedAt
+		rejectedBy {
+			id
+			firstName
+			lastName
+			email
+		}
+		createdAt
+		updatedAt
+	}
+}
+
+mutation ApproveSubscriptionRequest($input: ApproveSubscriptionRequestInput!) {
+	approveSubscriptionRequest(input: $input) {
+		id
+		clientId
+		membership {
+			id
+			name
+			monthlyPrice
+		}
+		priceAtPurchase
+		startedAt
+		expiresAt
+		status
+	}
+}
+
+mutation RejectSubscriptionRequest($input: RejectSubscriptionRequestInput!) {
+	rejectSubscriptionRequest(input: $input)
+}
+
+mutation DeleteSubscriptionRequest($id: ID!) {
+	deleteSubscriptionRequest(id: $id)
+}
+

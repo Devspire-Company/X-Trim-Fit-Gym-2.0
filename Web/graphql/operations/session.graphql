@@ -1,0 +1,82 @@
+query GetCoachSessions($coachId: ID!, $status: SessionStatus) {
+	getCoachSessions(coachId: $coachId, status: $status) {
+		id
+		coachId
+		clientsIds
+		clients {
+			id
+			firstName
+			lastName
+			email
+		}
+		name
+		date
+		startTime
+		endTime
+		gymArea
+		status
+		note
+		sessionKind
+		maxParticipants
+		enrollments {
+			clientId
+			status
+			createdAt
+			client {
+				id
+				firstName
+				lastName
+				email
+			}
+		}
+		createdAt
+		updatedAt
+	}
+}
+
+mutation CreateSession($input: CreateSessionInput!) {
+	createSession(input: $input) {
+		id
+		coachId
+		clientsIds
+		name
+		date
+		startTime
+		endTime
+		gymArea
+		note
+		status
+		sessionKind
+		maxParticipants
+		goalId
+	}
+}
+
+query GetCoachSessionLogs($coachId: ID!) {
+	getCoachSessionLogs(coachId: $coachId) {
+		id
+		sessionId
+		coachId
+		clientId
+		client {
+			id
+			firstName
+			lastName
+			email
+		}
+		weight
+		notes
+		completedAt
+		createdAt
+		updatedAt
+		session {
+			id
+			name
+			date
+			startTime
+			endTime
+			status
+		}
+	}
+}
+

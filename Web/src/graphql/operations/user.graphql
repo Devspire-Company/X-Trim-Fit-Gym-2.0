@@ -1,0 +1,423 @@
+query Me {
+	me {
+		id
+		firstName
+		middleName
+		lastName
+		email
+		role
+		phoneNumber
+		dateOfBirth
+		gender
+	}
+}
+
+query GetUsers($role: RoleType, $includeDisabled: Boolean) {
+	getUsers(role: $role, includeDisabled: $includeDisabled) {
+		id
+		firstName
+		middleName
+		lastName
+		email
+		role
+		phoneNumber
+		dateOfBirth
+		gender
+		heardFrom
+		attendanceId
+		membershipDetails {
+			membershipId
+			physiqueGoalType
+			fitnessGoal
+			workOutTime
+			coachesIds
+			hasEnteredDetails
+			facilityBiometricEnrollmentComplete
+			membershipTransaction {
+				id
+				membershipId
+				membership {
+					id
+					name
+					monthlyPrice
+					description
+					features
+					status
+					durationType
+					monthDuration
+				}
+				priceAtPurchase
+				startedAt
+				expiresAt
+				monthDuration
+				dayDuration
+				status
+			}
+		}
+		currentMembership {
+			id
+			membershipId
+			membership {
+				id
+				name
+				monthlyPrice
+				description
+				features
+				status
+				durationType
+				monthDuration
+			}
+			priceAtPurchase
+			startedAt
+			expiresAt
+			monthDuration
+			dayDuration
+			status
+		}
+		coachDetails {
+			clientsIds
+			sessionsIds
+			specialization
+			ratings
+			yearsOfExperience
+			moreDetails
+			teachingDate
+			teachingTime
+			clientLimit
+		}
+		loginHistory {
+			ipAddress
+			userAgent
+			loginAt
+		}
+		isDisabled
+		disabledAt
+		disableReason
+		createdAt
+		updatedAt
+	}
+}
+
+query GetUser($id: ID!) {
+	getUser(id: $id) {
+		id
+		firstName
+		middleName
+		lastName
+		email
+		role
+		phoneNumber
+		dateOfBirth
+		gender
+		heardFrom
+		attendanceId
+		membershipDetails {
+			membershipId
+			physiqueGoalType
+			fitnessGoal
+			workOutTime
+			coachesIds
+			hasEnteredDetails
+			facilityBiometricEnrollmentComplete
+			membershipTransaction {
+				id
+				membershipId
+				membership {
+					id
+					name
+					monthlyPrice
+					description
+					features
+					status
+					durationType
+					monthDuration
+				}
+				priceAtPurchase
+				startedAt
+				expiresAt
+				monthDuration
+				dayDuration
+				status
+			}
+		}
+		currentMembership {
+			id
+			membershipId
+			membership {
+				id
+				name
+				monthlyPrice
+				description
+				features
+				status
+				durationType
+				monthDuration
+			}
+			priceAtPurchase
+			startedAt
+			expiresAt
+			monthDuration
+			dayDuration
+			status
+		}
+		coachDetails {
+			clientsIds
+			sessionsIds
+			specialization
+			ratings
+			yearsOfExperience
+			moreDetails
+			teachingDate
+			teachingTime
+			clientLimit
+		}
+		loginHistory {
+			ipAddress
+			userAgent
+			loginAt
+		}
+		isDisabled
+		disabledAt
+		disableReason
+		createdAt
+		updatedAt
+	}
+}
+
+mutation Login($input: LoginInput!) {
+	login(input: $input) {
+		user {
+			id
+			firstName
+			middleName
+			lastName
+			email
+			role
+			phoneNumber
+			dateOfBirth
+			gender
+		}
+		token
+	}
+}
+
+mutation CreateUser($input: CreateUserInput!) {
+	createUser(input: $input) {
+		user {
+			id
+			firstName
+			middleName
+			lastName
+			email
+			role
+			phoneNumber
+			dateOfBirth
+			gender
+		}
+		token
+	}
+}
+
+mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
+	updateUser(id: $id, input: $input) {
+		id
+		firstName
+		middleName
+		lastName
+		email
+		phoneNumber
+		dateOfBirth
+		gender
+		membershipDetails {
+			membershipId
+			physiqueGoalType
+			fitnessGoal
+			workOutTime
+			coachesIds
+			hasEnteredDetails
+			facilityBiometricEnrollmentComplete
+		}
+		coachDetails {
+			clientsIds
+			sessionsIds
+			specialization
+			ratings
+			yearsOfExperience
+			moreDetails
+			teachingDate
+			teachingTime
+			clientLimit
+		}
+		updatedAt
+	}
+}
+
+mutation DeleteUser($id: ID!) {
+	deleteUser(id: $id)
+}
+
+mutation DisableUser($id: ID!, $reason: String!) {
+	disableUser(id: $id, reason: $reason) {
+		id
+		isDisabled
+		disabledAt
+		disableReason
+	}
+}
+
+mutation EnableUser($id: ID!) {
+	enableUser(id: $id) {
+		id
+		isDisabled
+	}
+}
+
+mutation CreateMembership($input: CreateMembershipInput!) {
+	createMembership(input: $input) {
+		id
+		name
+		monthlyPrice
+		description
+		features
+		status
+		statusEffectiveAt
+		durationType
+		monthDuration
+		createdAt
+		updatedAt
+	}
+}
+
+mutation UpdateMembership($id: ID!, $input: UpdateMembershipInput!) {
+	updateMembership(id: $id, input: $input) {
+		id
+		name
+		monthlyPrice
+		description
+		features
+		status
+		statusEffectiveAt
+		durationType
+		monthDuration
+		updatedAt
+	}
+}
+
+mutation DeleteMembership($id: ID!) {
+	deleteMembership(id: $id)
+}
+
+mutation PurchaseMembership($input: PurchaseMembershipInput!) {
+		purchaseMembership(input: $input) {
+		id
+		clientId
+		membershipId
+		membership {
+			id
+			name
+			monthlyPrice
+			description
+			features
+		}
+		priceAtPurchase
+		startedAt
+		expiresAt
+		monthDuration
+		dayDuration
+		status
+		createdAt
+		updatedAt
+	}
+}
+
+mutation CancelMembership($transactionId: ID!, $reason: String!) {
+	cancelMembership(transactionId: $transactionId, reason: $reason)
+}
+
+# Subscriptions
+subscription UsersUpdated($role: RoleType) {
+	usersUpdated(role: $role) {
+		id
+		firstName
+		middleName
+		lastName
+		email
+		role
+		phoneNumber
+		dateOfBirth
+		gender
+		heardFrom
+		attendanceId
+		membershipDetails {
+			membershipId
+			physiqueGoalType
+			fitnessGoal
+			workOutTime
+			coachesIds
+			hasEnteredDetails
+			facilityBiometricEnrollmentComplete
+			membershipTransaction {
+				id
+				membershipId
+				membership {
+					id
+					name
+					monthlyPrice
+					description
+					features
+					status
+					durationType
+					monthDuration
+				}
+				priceAtPurchase
+				startedAt
+				expiresAt
+				monthDuration
+				dayDuration
+				status
+			}
+		}
+		currentMembership {
+			id
+			membershipId
+			membership {
+				id
+				name
+				monthlyPrice
+				description
+				features
+				status
+				durationType
+				monthDuration
+			}
+			priceAtPurchase
+			startedAt
+			expiresAt
+			monthDuration
+			dayDuration
+			status
+		}
+		coachDetails {
+			clientsIds
+			sessionsIds
+			specialization
+			ratings
+			yearsOfExperience
+			moreDetails
+			teachingDate
+			teachingTime
+			clientLimit
+		}
+		loginHistory {
+			ipAddress
+			userAgent
+			loginAt
+		}
+		isDisabled
+		disabledAt
+		disableReason
+		createdAt
+		updatedAt
+	}
+}
+

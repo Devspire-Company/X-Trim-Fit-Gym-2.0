@@ -1,0 +1,17 @@
+{
+	"name": "xtrimfitgym-system",
+	"private": true,
+	"version": "1.0.0",
+	"scripts": {
+		"install:all": "npm --prefix Api ci && npm --prefix \"Mobile App\" ci && npm --prefix Web ci",
+		"generate": "npm --prefix Api run generate && npm --prefix \"Mobile App\" run generate && npm --prefix Web run codegen",
+		"typecheck": "npm --prefix Api run typecheck && npm --prefix \"Mobile App\" run typecheck && npm --prefix Web run typecheck",
+		"lint": "npm --prefix \"Mobile App\" run lint && npm --prefix Web run lint",
+		"test": "npm --prefix Api test && npm --prefix Web run test:run",
+		"build": "npm --prefix Api run build && npm --prefix Web run build",
+		"check": "npm run generate && npm run typecheck && npm run lint && npm run test && npm run build",
+		"dev:api": "npm --prefix Api run dev",
+		"dev:mobile": "npm --prefix \"Mobile App\" run start",
+		"dev:web": "npm --prefix Web run dev"
+	}
+}
