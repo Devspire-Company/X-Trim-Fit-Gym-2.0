@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { X } from 'lucide-react';
 import type { Membership } from '@/graphql/generated/types';
+import { UiSelect } from '@/components/ui/UiSelect';
 
 interface MembershipFormModalProps {
 	isOpen: boolean;
@@ -78,9 +79,7 @@ export function MembershipFormModal({
 		e.preventDefault();
 		const formData = new FormData(e.currentTarget);
 
-		const features = featureInputs
-			.map((f) => f.trim())
-			.filter((f) => f.length > 0);
+		const features = featureInputs.map((f) => f.trim()).filter((f) => f.length > 0);
 		if (features.length === 0) {
 			setFeaturesError('Please add at least one feature.');
 			return;
@@ -114,9 +113,9 @@ export function MembershipFormModal({
 			? 'Coming Soon'
 			: membership?.status === 'INACTIVE'
 				? 'Inactive'
-			: membership?.status === 'ACTIVE'
-				? 'Active'
-				: 'Active';
+				: membership?.status === 'ACTIVE'
+					? 'Active'
+					: 'Active';
 	const defaultDurationType = membership?.durationType
 		? durationMap[membership.durationType] || 'Monthly'
 		: 'Monthly';
@@ -174,7 +173,7 @@ export function MembershipFormModal({
 
 							<div className="form-group">
 								<label htmlFor="durationType">Duration Type *</label>
-								<select
+								<UiSelect
 									id="durationType"
 									name="durationType"
 									defaultValue={defaultDurationType}
@@ -185,7 +184,7 @@ export function MembershipFormModal({
 									<option value="Yearly">Yearly</option>
 									<option value="Daily">Daily (fixed days / promos)</option>
 									<option value="Minutes">Minutes</option>
-								</select>
+								</UiSelect>
 							</div>
 
 							<div className="form-group">
@@ -207,17 +206,18 @@ export function MembershipFormModal({
 									id="monthDurationHint"
 									style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', display: 'block' }}
 								>
-									For Monthly / Quarterly / Yearly: length in months. For Daily: calendar days. For Minutes: exact minutes (e.g., 5 or 10).
+									For Monthly / Quarterly / Yearly: length in months. For Daily: calendar days. For
+									Minutes: exact minutes (e.g., 5 or 10).
 								</small>
 							</div>
 
 							<div className="form-group">
 								<label htmlFor="status">Status *</label>
-								<select id="status" name="status" defaultValue={defaultStatus} required>
+								<UiSelect id="status" name="status" defaultValue={defaultStatus} required>
 									<option value="Active">Active</option>
 									<option value="Inactive">Inactive</option>
 									<option value="Coming Soon">Coming Soon</option>
-								</select>
+								</UiSelect>
 							</div>
 							<div className="form-group">
 								<label htmlFor="statusEffectiveAt">Status effective date *</label>
@@ -229,7 +229,9 @@ export function MembershipFormModal({
 									onChange={(e) => setStatusEffectiveAtInput(e.target.value)}
 									required
 								/>
-								<small style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', display: 'block' }}>
+								<small
+									style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', display: 'block' }}
+								>
 									When this status starts applying for new avails.
 								</small>
 							</div>
@@ -285,7 +287,11 @@ export function MembershipFormModal({
 									</small>
 								) : (
 									<small
-										style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', display: 'block' }}
+										style={{
+											color: 'var(--text-secondary)',
+											marginTop: '0.5rem',
+											display: 'block',
+										}}
 									>
 										Add one feature per field for cleaner plan details.
 									</small>

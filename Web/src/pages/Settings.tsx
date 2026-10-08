@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { UiSelect } from '@/components/ui/UiSelect';
 import {
 	User,
 	Sliders,
@@ -13,19 +14,14 @@ import {
 	UserPlus,
 	Eye,
 	EyeOff,
+	Home,
 } from 'lucide-react';
 import { useClerk } from '@clerk/clerk-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { logout, updateUser } from '@/store/slices/authSlice';
 import { addToast } from '@/store/slices/uiSlice';
 import { useMutation, useQuery } from '@apollo/client';
-import {
-	UPDATE_USER,
-	CREATE_USER,
-	DELETE_USER,
-	GET_USERS,
-	GET_USER,
-} from '@/graphql/operations';
+import { UPDATE_USER, CREATE_USER, DELETE_USER, GET_USERS, GET_USER } from '@/graphql/operations';
 import { RoleType } from '@/graphql/generated/graphql';
 
 export function SettingsPage() {
@@ -65,84 +61,79 @@ export function SettingsPage() {
 	};
 
 	const saveChanges = (section: string) => {
-		// Handle save logic here
 		setEditMode((prev) => ({ ...prev, [section]: false }));
 	};
 
 	return (
 		<div className="settings-layout flex min-h-[calc(100vh-80px)]">
-			{/* Sidebar */}
-			<aside className="settings-sidebar w-80 bg-[var(--card-bg)] border-r border-[var(--card-border)] py-10 flex flex-col sticky top-20 h-[calc(100vh-80px)] overflow-y-auto backdrop-blur-md">
-				<div className="profile-section px-8 pb-8 border-b border-[var(--card-border)] mb-6 text-center">
-					<div className="profile-picture-wrapper relative inline-block mb-4">
-						<div className="profile-picture w-25 h-25 rounded-full bg-gradient-to-br from-[var(--primary-yellow)] to-[#E6B800] flex items-center justify-center text-3xl font-semibold text-[#1a1a1a] mx-auto">
-							{user?.firstName?.[0] || 'A'}
-							{user?.lastName?.[0] || 'D'}
-						</div>
-						<button
-							className="edit-profile-pic absolute bottom-0 right-0 w-8 h-8 rounded-full bg-[var(--primary-yellow)] border-[3px] border-[var(--bg-dark)] flex items-center justify-center text-[#1a1a1a] text-sm transition-[var(--transition)] hover:bg-[#E6B800] hover:scale-110"
-							title="Edit Profile Picture"
-						>
-							<Pencil className="w-3.5 h-3.5" />
-						</button>
-					</div>
-					<h3 className="profile-name text-xl font-semibold text-[var(--text-primary)] mb-1 font-['Poppins']">
-						{user?.firstName} {user?.lastName}
-					</h3>
-					<p className="profile-role text-sm text-[var(--text-secondary)]">System Administrator</p>
-				</div>
-				<nav className="settings-nav flex flex-col px-4">
-					{sections.map((section) => {
-						const Icon = section.icon;
-						return (
-							<button
-								key={section.id}
-								onClick={() => setActiveSection(section.id)}
-								className={`nav-link flex items-center gap-3 px-5 py-3.5 rounded-[10px] text-[var(--text-secondary)] text-[0.95rem] font-medium transition-[var(--transition)] ${
-									activeSection === section.id
-										? 'active bg-[var(--primary-yellow)] text-[#1a1a1a] font-semibold'
-										: 'hover:bg-[rgba(255,255,255,0.05)] hover:text-[var(--text-primary)]'
-								}`}
-							>
-								<Icon className="w-5 h-5" />
-								<span>{section.label}</span>
-							</button>
-						);
-					})}
-					<div className="nav-divider h-px bg-[var(--card-border)] my-2 mx-5" />
-					<button
-						onClick={() => setLogoutModalOpen(true)}
-						className="nav-link logout-link flex items-center gap-3 px-5 py-3.5 rounded-[10px] text-[var(--text-secondary)] text-[0.95rem] font-medium transition-[var(--transition)] hover:bg-[rgba(255,255,255,0.05)] hover:text-[var(--text-primary)]"
-					>
-						<LogOut className="w-5 h-5" />
-						<span>Log Out</span>
-					</button>
-				</nav>
-			</aside>
+			<button type="button" onClick={() => navigate('/dashboard')} className="settings-home-link">
+				<Home className="w-4 h-4" />
+				<span>Back to Dashboard</span>
+			</button>
 
-			{/* Main Content Area */}
-			<div className="settings-main-content flex-1 py-10 px-12 overflow-y-auto">
-				<div className="settings-container max-w-[900px] w-full">
-					{activeSection === 'account' && (
-						<AccountSection
-							editMode={editMode.account}
-							onToggleEdit={() => toggleEditMode('account')}
-							onCancel={() => cancelEdit('account')}
-							onSave={() => saveChanges('account')}
-						/>
-					)}
-					{activeSection === 'preferences' && <PreferencesSection />}
-					{activeSection === 'notifications' && (
-						<NotificationsSection
-							editMode={editMode.notifications}
-							onToggleEdit={() => toggleEditMode('notifications')}
-							onCancel={() => cancelEdit('notifications')}
-							onSave={() => saveChanges('notifications')}
-						/>
-					)}
-					{activeSection === 'security' && <SecuritySection />}
-					{activeSection === 'admin' && <AdminAccountsSection />}
-					{activeSection === 'manageData' && <ManageDataSection />}
+			<div className="settings-workspace">
+				{/* Sidebar */}
+				<aside className="settings-sidebar w-80 bg-[var(--card-bg)] border-r border-[var(--card-border)] py-10 flex flex-col sticky top-20 h-[calc(100vh-80px)] overflow-y-auto backdrop-blur-md">
+					<div className="profile-section px-8 pb-8 border-b border-[var(--card-border)] mb-6 text-center">
+						<div className="profile-picture-wrapper relative inline-block mb-4">
+							<div className="profile-picture w-25 h-25 rounded-full bg-gradient-to-br from-[var(--primary-yellow)] to-[#E6B800] flex items-center justify-center text-3xl font-semibold text-[#1a1a1a] mx-auto">
+								{user?.firstName?.[0] || 'A'}
+								{user?.lastName?.[0] || 'D'}
+							</div>
+						</div>
+						<h3 className="profile-name text-xl font-semibold text-[var(--text-primary)] mb-1 font-['Poppins']">
+							{user?.firstName} {user?.lastName}
+						</h3>
+						<p className="profile-role text-sm text-[var(--text-secondary)]">
+							System Administrator
+						</p>
+					</div>
+					<nav className="settings-nav flex flex-col px-4">
+						{sections.map((section) => {
+							const Icon = section.icon;
+							return (
+								<button
+									key={section.id}
+									onClick={() => setActiveSection(section.id)}
+									className={`nav-link flex items-center gap-3 px-5 py-3.5 rounded-[10px] text-[var(--text-secondary)] text-[0.95rem] font-medium transition-[var(--transition)] ${
+										activeSection === section.id
+											? 'active bg-[var(--primary-yellow)] text-[#1a1a1a] font-semibold'
+											: 'hover:bg-[rgba(255,255,255,0.05)] hover:text-[var(--text-primary)]'
+									}`}
+								>
+									<Icon className="w-5 h-5" />
+									<span>{section.label}</span>
+								</button>
+							);
+						})}
+						<div className="nav-divider h-px bg-[var(--card-border)] my-2 mx-5" />
+						<button
+							onClick={() => setLogoutModalOpen(true)}
+							className="nav-link logout-link flex items-center gap-3 px-5 py-3.5 rounded-[10px] text-[var(--text-secondary)] text-[0.95rem] font-medium transition-[var(--transition)] hover:bg-[rgba(255,255,255,0.05)] hover:text-[var(--text-primary)]"
+						>
+							<LogOut className="w-5 h-5" />
+							<span>Log Out</span>
+						</button>
+					</nav>
+				</aside>
+
+				{/* Main Content Area */}
+				<div className="settings-main-content flex-1 py-10 px-12 overflow-y-auto">
+					<div className="settings-container max-w-[900px] w-full">
+						{activeSection === 'account' && (
+							<AccountSection
+								editMode={editMode.account}
+								onToggleEdit={() => toggleEditMode('account')}
+								onCancel={() => cancelEdit('account')}
+								onSave={() => saveChanges('account')}
+							/>
+						)}
+						{activeSection === 'preferences' && <PreferencesSection />}
+						{activeSection === 'notifications' && <NotificationsSection />}
+						{activeSection === 'security' && <SecuritySection />}
+						{activeSection === 'admin' && <AdminAccountsSection />}
+						{activeSection === 'manageData' && <ManageDataSection />}
+					</div>
 				</div>
 			</div>
 
@@ -228,17 +219,22 @@ function AccountSection({
 
 			if (result.data?.updateUser) {
 				const updatedUser = result.data.updateUser;
-				dispatch(updateUser({
-					...updatedUser,
-					middleName: updatedUser.middleName ?? undefined,
-					phoneNumber: updatedUser.phoneNumber ?? undefined,
-					dateOfBirth: updatedUser.dateOfBirth ?? undefined,
-				}));
-				dispatch(addToast({ type: 'success', message: 'Account information updated successfully!' }));
+				dispatch(
+					updateUser({
+						...updatedUser,
+						middleName: updatedUser.middleName ?? undefined,
+						phoneNumber: updatedUser.phoneNumber ?? undefined,
+						dateOfBirth: updatedUser.dateOfBirth ?? undefined,
+					})
+				);
+				dispatch(
+					addToast({ type: 'success', message: 'Account information updated successfully!' })
+				);
 				onSave();
 			}
 		} catch (error: unknown) {
-			const message = error instanceof Error ? error.message : 'Failed to update account information';
+			const message =
+				error instanceof Error ? error.message : 'Failed to update account information';
 			dispatch(addToast({ type: 'error', message }));
 		}
 	};
@@ -343,24 +339,17 @@ function AccountSection({
 }
 
 function PreferencesSection() {
-	const dispatch = useAppDispatch();
-	const handleEditClick = () => {
-		dispatch(addToast({ type: 'info', message: 'System preferences editing is currently not available.' }));
-	};
-
 	return (
 		<div className="settings-section bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-8">
 			<div className="section-header-modern flex items-center justify-between mb-8 pb-6 border-b border-[var(--card-border)]">
-				<h2 className="section-title text-[1.75rem] font-semibold text-[var(--text-primary)] font-['Poppins'] m-0">
-					System Preferences
-				</h2>
-				<button
-					onClick={handleEditClick}
-					className="btn-edit-modern flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[rgba(255,255,255,0.05)] border border-[var(--card-border)] text-[var(--text-secondary)] text-sm font-medium transition-[var(--transition)] hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(249,197,19,0.3)] hover:text-[var(--primary-yellow)]"
-				>
-					<Pencil className="w-4 h-4" />
-					Edit
-				</button>
+				<div>
+					<h2 className="section-title text-[1.75rem] font-semibold text-[var(--text-primary)] font-['Poppins'] m-0">
+						System Preferences
+					</h2>
+					<p className="text-sm text-[var(--text-secondary)] mt-2">
+						Operational defaults currently used throughout the admin portal.
+					</p>
+				</div>
 			</div>
 			<div className="section-content flex flex-col gap-6">
 				<div className="form-grid grid grid-cols-2 gap-6 mb-6">
@@ -369,7 +358,7 @@ function PreferencesSection() {
 							Timezone
 						</label>
 						<div className="input-wrapper relative">
-							<select
+							<UiSelect
 								disabled
 								className="w-full px-4 py-3 bg-[rgba(255,255,255,0.05)] border border-[var(--card-border)] rounded-lg text-[var(--text-primary)] text-[0.95rem] transition-[var(--transition)] opacity-60 cursor-not-allowed"
 							>
@@ -377,7 +366,7 @@ function PreferencesSection() {
 								<option>UTC (GMT+0)</option>
 								<option>America/New_York (GMT-5)</option>
 								<option>Europe/London (GMT+0)</option>
-							</select>
+							</UiSelect>
 						</div>
 					</div>
 					<div className="form-group flex flex-col gap-2">
@@ -385,14 +374,14 @@ function PreferencesSection() {
 							Date Format
 						</label>
 						<div className="input-wrapper relative">
-							<select
+							<UiSelect
 								disabled
 								className="w-full px-4 py-3 bg-[rgba(255,255,255,0.05)] border border-[var(--card-border)] rounded-lg text-[var(--text-primary)] text-[0.95rem] transition-[var(--transition)] opacity-60 cursor-not-allowed"
 							>
 								<option>MM/DD/YYYY</option>
 								<option>DD/MM/YYYY</option>
 								<option>YYYY-MM-DD</option>
-							</select>
+							</UiSelect>
 						</div>
 					</div>
 					<div className="form-group flex flex-col gap-2">
@@ -400,13 +389,13 @@ function PreferencesSection() {
 							Language
 						</label>
 						<div className="input-wrapper relative">
-							<select
+							<UiSelect
 								disabled
 								className="w-full px-4 py-3 bg-[rgba(255,255,255,0.05)] border border-[var(--card-border)] rounded-lg text-[var(--text-primary)] text-[0.95rem] transition-[var(--transition)] opacity-60 cursor-not-allowed"
 							>
 								<option>English</option>
 								<option>Filipino</option>
-							</select>
+							</UiSelect>
 						</div>
 					</div>
 					<div className="form-group flex flex-col gap-2">
@@ -414,14 +403,14 @@ function PreferencesSection() {
 							Currency
 						</label>
 						<div className="input-wrapper relative">
-							<select
+							<UiSelect
 								disabled
 								className="w-full px-4 py-3 bg-[rgba(255,255,255,0.05)] border border-[var(--card-border)] rounded-lg text-[var(--text-primary)] text-[0.95rem] transition-[var(--transition)] opacity-60 cursor-not-allowed"
 							>
 								<option>Philippine Peso (₱)</option>
 								<option>US Dollar ($)</option>
 								<option>Euro (€)</option>
-							</select>
+							</UiSelect>
 						</div>
 					</div>
 				</div>
@@ -430,125 +419,67 @@ function PreferencesSection() {
 	);
 }
 
-function NotificationsSection({
-	editMode,
-	onToggleEdit,
-	onCancel,
-	onSave,
-}: {
-	editMode?: boolean;
-	onToggleEdit: () => void;
-	onCancel: () => void;
-	onSave: () => void;
-}) {
-	const [notifications, setNotifications] = useState({
-		email: true,
-		newMember: true,
-		payment: true,
-		system: true,
+function NotificationsSection() {
+	const dispatch = useAppDispatch();
+	const globallyEnabled = import.meta.env.VITE_ENABLE_SYSTEM_NOTIFICATIONS !== 'false';
+	const [enabled, setEnabled] = useState(() => {
+		if (!globallyEnabled) return false;
+		return window.localStorage.getItem('xtrimfitgym.systemNotificationsEnabled') !== 'false';
 	});
+
+	const handleToggle = (nextEnabled: boolean) => {
+		setEnabled(nextEnabled);
+		window.localStorage.setItem('xtrimfitgym.systemNotificationsEnabled', String(nextEnabled));
+		window.dispatchEvent(
+			new CustomEvent('xtrimfitgym:notification-preference', {
+				detail: { enabled: nextEnabled },
+			})
+		);
+		dispatch(
+			addToast({
+				type: 'success',
+				message: nextEnabled
+					? 'In-app notifications enabled.'
+					: 'In-app notifications hidden on this browser.',
+			})
+		);
+	};
 
 	return (
 		<div className="settings-section bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-8">
 			<div className="section-header-modern flex items-center justify-between mb-8 pb-6 border-b border-[var(--card-border)]">
-				<h2 className="section-title text-[1.75rem] font-semibold text-[var(--text-primary)] font-['Poppins'] m-0">
-					Notification Settings
-				</h2>
-				<button
-					onClick={onToggleEdit}
-					className={`btn-edit-modern flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[rgba(255,255,255,0.05)] border border-[var(--card-border)] text-[var(--text-secondary)] text-sm font-medium transition-[var(--transition)] hover:bg-[rgba(255,255,255,0.08)] hover:border-[rgba(249,197,19,0.3)] hover:text-[var(--primary-yellow)] ${editMode ? 'editing' : ''}`}
-				>
-					<Pencil className="w-4 h-4" />
-					Edit
-				</button>
+				<div>
+					<h2 className="section-title text-[1.75rem] font-semibold text-[var(--text-primary)] font-['Poppins'] m-0">
+						Notification Settings
+					</h2>
+					<p className="text-sm text-[var(--text-secondary)] mt-2">
+						Control the live notification panel for this browser.
+					</p>
+				</div>
 			</div>
 			<div className="section-content flex flex-col gap-6">
 				<div className="notification-list flex flex-col gap-6">
 					<div className="notification-item">
 						<div className="notification-info">
-							<h3>Email Notifications</h3>
-							<p>Receive email alerts for important system events</p>
+							<h3>In-app System Notifications</h3>
+							<p>Show the notification bell and live operational alerts in this admin portal</p>
 						</div>
 						<label className="toggle-switch">
 							<input
 								type="checkbox"
-								checked={notifications.email}
-								disabled={!editMode}
-								onChange={(e) => setNotifications((prev) => ({ ...prev, email: e.target.checked }))}
-							/>
-							<span className="toggle-slider"></span>
-						</label>
-					</div>
-					<div className="notification-item">
-						<div className="notification-info">
-							<h3>New Member Registration</h3>
-							<p>Get notified when a new member registers</p>
-						</div>
-						<label className="toggle-switch">
-							<input
-								type="checkbox"
-								checked={notifications.newMember}
-								disabled={!editMode}
-								onChange={(e) =>
-									setNotifications((prev) => ({ ...prev, newMember: e.target.checked }))
-								}
-							/>
-							<span className="toggle-slider"></span>
-						</label>
-					</div>
-					<div className="notification-item">
-						<div className="notification-info">
-							<h3>Payment Alerts</h3>
-							<p>Receive notifications for payment transactions</p>
-						</div>
-						<label className="toggle-switch">
-							<input
-								type="checkbox"
-								checked={notifications.payment}
-								disabled={!editMode}
-								onChange={(e) =>
-									setNotifications((prev) => ({ ...prev, payment: e.target.checked }))
-								}
-							/>
-							<span className="toggle-slider"></span>
-						</label>
-					</div>
-					<div className="notification-item">
-						<div className="notification-info">
-							<h3>System Updates</h3>
-							<p>Get notified about system maintenance and updates</p>
-						</div>
-						<label className="toggle-switch">
-							<input
-								type="checkbox"
-								checked={notifications.system}
-								disabled={!editMode}
-								onChange={(e) =>
-									setNotifications((prev) => ({ ...prev, system: e.target.checked }))
-								}
+								checked={enabled}
+								disabled={!globallyEnabled}
+								onChange={(e) => handleToggle(e.target.checked)}
 							/>
 							<span className="toggle-slider"></span>
 						</label>
 					</div>
 				</div>
-				<div
-					className={`form-actions flex gap-4 justify-end mt-8 pt-6 border-t border-[var(--card-border)] ${editMode ? '' : 'hidden'}`}
-				>
-					<button
-						type="button"
-						onClick={onCancel}
-						className="btn-discard px-6 py-3 bg-transparent text-[var(--primary-yellow)] border border-[var(--primary-yellow)] rounded-lg font-medium text-[0.95rem] cursor-pointer transition-[var(--transition)] hover:bg-[var(--primary-yellow)] hover:text-[#1a1a1a]"
-					>
-						Discard Changes
-					</button>
-					<button
-						type="button"
-						onClick={onSave}
-						className="btn-save px-6 py-3 bg-[var(--primary-yellow)] text-[#1a1a1a] border-none rounded-lg font-semibold text-[0.95rem] cursor-pointer transition-[var(--transition)] hover:bg-[#E6B800] hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(249,197,19,0.3)]"
-					>
-						Save Changes
-					</button>
-				</div>
+				{!globallyEnabled && (
+					<p className="text-xs text-[var(--text-secondary)]">
+						Notifications are disabled by the deployment configuration.
+					</p>
+				)}
 			</div>
 		</div>
 	);
@@ -625,7 +556,7 @@ function SecuritySection() {
 					<div className="security-actions flex flex-col gap-4">
 						<div className="security-item flex items-center justify-between p-6 bg-[rgba(255,255,255,0.03)] border border-[var(--card-border)] rounded-xl transition-[var(--transition)] hover:bg-[rgba(255,255,255,0.05)] hover:border-[rgba(255,255,255,0.12)]">
 							<div className="security-info flex items-center gap-4 flex-1">
-								<div className="w-12 h-12 rounded-xl bg-[rgba(249,197,19,0.1)] flex items-center justify-center text-[var(--primary-yellow)] text-2xl">
+								<div className="security-icon">
 									<Key className="w-6 h-6" />
 								</div>
 								<div>
@@ -647,7 +578,7 @@ function SecuritySection() {
 						</div>
 						<div className="security-item flex items-center justify-between p-6 bg-[rgba(255,255,255,0.03)] border border-[var(--card-border)] rounded-xl transition-[var(--transition)] hover:bg-[rgba(255,255,255,0.05)] hover:border-[rgba(255,255,255,0.12)]">
 							<div className="security-info flex items-center gap-4 flex-1">
-								<div className="w-12 h-12 rounded-xl bg-[rgba(249,197,19,0.1)] flex items-center justify-center text-[var(--primary-yellow)] text-2xl">
+								<div className="security-icon">
 									<History className="w-6 h-6" />
 								</div>
 								<div>
@@ -706,7 +637,9 @@ function SecuritySection() {
 									/>
 									<button
 										type="button"
-										onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+										onClick={() =>
+											setShowPasswords({ ...showPasswords, current: !showPasswords.current })
+										}
 										className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[var(--transition)]"
 									>
 										{showPasswords.current ? (
@@ -762,7 +695,9 @@ function SecuritySection() {
 									/>
 									<button
 										type="button"
-										onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+										onClick={() =>
+											setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })
+										}
 										className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-[var(--transition)]"
 									>
 										{showPasswords.confirm ? (
@@ -794,10 +729,7 @@ function SecuritySection() {
 			</div>
 
 			{/* Login History Modal */}
-			<LoginHistoryModal
-				isOpen={isHistoryModalOpen}
-				onClose={() => setIsHistoryModalOpen(false)}
-			/>
+			<LoginHistoryModal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} />
 		</>
 	);
 }
@@ -828,7 +760,9 @@ function AdminAccountsSection() {
 		if (!user?.id) return;
 
 		if (!formData.dateOfBirth) {
-			dispatch(addToast({ type: 'error', message: 'Date of birth is required for admin accounts.' }));
+			dispatch(
+				addToast({ type: 'error', message: 'Date of birth is required for admin accounts.' })
+			);
 			return;
 		}
 		const dob = new Date(formData.dateOfBirth);
@@ -837,7 +771,9 @@ function AdminAccountsSection() {
 		const md = now.getMonth() - dob.getMonth();
 		if (md < 0 || (md === 0 && now.getDate() < dob.getDate())) age -= 1;
 		if (age < 18) {
-			dispatch(addToast({ type: 'error', message: 'Admin accounts must be 18 years old and above.' }));
+			dispatch(
+				addToast({ type: 'error', message: 'Admin accounts must be 18 years old and above.' })
+			);
 			return;
 		}
 
@@ -889,12 +825,14 @@ function AdminAccountsSection() {
 			</div>
 			<div className="section-content flex flex-col gap-6">
 				<p className="text-[var(--text-secondary)] text-sm mb-4">
-					Create admins only from here. New staff need a MongoDB user first (this form); they sign in with Clerk
-					using the same email. Public sign-up is disabled.
+					Create admins only from here. New staff need a MongoDB user first (this form); they sign
+					in with Clerk using the same email. Public sign-up is disabled.
 				</p>
 				{admins.length > 0 && (
 					<div className="admin-list">
-						<h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Current Admin Accounts</h3>
+						<h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+							Current Admin Accounts
+						</h3>
 						<div className="grid grid-cols-1 gap-4">
 							{admins.map((admin) => {
 								if (!admin) return null;
@@ -1024,17 +962,23 @@ function ManageDataSection() {
 	const dispatch = useAppDispatch();
 	const [isClearDataOpen, setIsClearDataOpen] = useState(false);
 	const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
-	const { data: usersData, loading, refetch } = useQuery(GET_USERS, {
+	const {
+		data: usersData,
+		loading,
+		refetch,
+	} = useQuery(GET_USERS, {
 		variables: { includeDisabled: true },
 	});
 	const [deleteUserMutation, { loading: isDeleting }] = useMutation(DELETE_USER);
 
-	const accounts = (usersData?.getUsers || []).filter((account): account is NonNullable<typeof account> => Boolean(account));
+	const accounts = (usersData?.getUsers || []).filter(
+		(account): account is NonNullable<typeof account> => Boolean(account)
+	);
 	const selectedCount = selectedAccountIds.length;
 
 	const toggleAccount = (accountId: string) => {
 		setSelectedAccountIds((prev) =>
-			prev.includes(accountId) ? prev.filter((id) => id !== accountId) : [...prev, accountId],
+			prev.includes(accountId) ? prev.filter((id) => id !== accountId) : [...prev, accountId]
 		);
 	};
 
@@ -1059,18 +1003,24 @@ function ManageDataSection() {
 				selectedAccountIds.map((id) =>
 					deleteUserMutation({
 						variables: { id },
-					}),
-				),
+					})
+				)
 			);
 
-			dispatch(addToast({
-				type: 'success',
-				message: selectedCount === 1 ? '1 account deleted successfully.' : `${selectedCount} accounts deleted successfully.`,
-			}));
+			dispatch(
+				addToast({
+					type: 'success',
+					message:
+						selectedCount === 1
+							? '1 account deleted successfully.'
+							: `${selectedCount} accounts deleted successfully.`,
+				})
+			);
 			closeClearData();
 			await refetch();
 		} catch (error: unknown) {
-			const message = error instanceof Error ? error.message : 'Failed to clear selected account data';
+			const message =
+				error instanceof Error ? error.message : 'Failed to clear selected account data';
 			dispatch(addToast({ type: 'error', message }));
 		}
 	};
@@ -1095,10 +1045,7 @@ function ManageDataSection() {
 				</p>
 			</div>
 
-			<div
-				className={`modal-overlay ${isClearDataOpen ? 'active' : ''}`}
-				onClick={closeClearData}
-			>
+			<div className={`modal-overlay ${isClearDataOpen ? 'active' : ''}`} onClick={closeClearData}>
 				<div className="modal modal-center" onClick={(e) => e.stopPropagation()}>
 					<div className="modal-body">
 						<div className="flex items-center justify-between mb-6">
@@ -1159,9 +1106,7 @@ function ManageDataSection() {
 						</div>
 
 						<div className="flex items-center justify-between mt-4">
-							<p className="text-xs text-[var(--text-secondary)]">
-								{selectedCount} selected
-							</p>
+							<p className="text-xs text-[var(--text-secondary)]">{selectedCount} selected</p>
 							<div className="flex gap-4">
 								<button
 									type="button"
@@ -1198,10 +1143,7 @@ function LoginHistoryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 	const loginHistory = (data?.getUser as any)?.loginHistory || [];
 
 	return (
-		<div
-			className={`modal-overlay ${isOpen ? 'active' : ''}`}
-			onClick={onClose}
-		>
+		<div className={`modal-overlay ${isOpen ? 'active' : ''}`} onClick={onClose}>
 			<div className="modal modal-center" onClick={(e) => e.stopPropagation()}>
 				<div className="modal-body">
 					<div className="flex items-center justify-between mb-6">
@@ -1219,7 +1161,9 @@ function LoginHistoryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 						{loading ? (
 							<p className="text-[var(--text-secondary)] text-center py-8">Loading...</p>
 						) : loginHistory.length === 0 ? (
-							<p className="text-[var(--text-secondary)] text-center py-8">No login history available</p>
+							<p className="text-[var(--text-secondary)] text-center py-8">
+								No login history available
+							</p>
 						) : (
 							<div className="flex flex-col gap-3">
 								{loginHistory.map((entry: any, index: number) => (
@@ -1238,7 +1182,9 @@ function LoginHistoryModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 											</div>
 											<div className="text-right">
 												<p className="text-sm text-[var(--text-primary)]">
-													{entry.loginAt ? new Date(entry.loginAt).toLocaleString() : 'Unknown date'}
+													{entry.loginAt
+														? new Date(entry.loginAt).toLocaleString()
+														: 'Unknown date'}
 												</p>
 											</div>
 										</div>

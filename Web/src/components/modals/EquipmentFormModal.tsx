@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { X } from 'lucide-react';
 import { EquipmentStatus, type Equipment } from '@/graphql/generated/graphql';
 import { DatePicker } from '@/components/ui/date-picker';
+import { UiSelect } from '@/components/ui/UiSelect';
 
 export interface EquipmentFormData {
 	name: string;
@@ -107,9 +108,13 @@ export function EquipmentFormModal({
 	const defaultStatus = equipment?.status ?? EquipmentStatus.Available;
 	const parsedQuickAdjust = Number.parseInt(stockAdjustAmount.trim(), 10);
 	const currentQuantity = Math.max(0, Number.parseInt(quantityInput || '0', 10) || 0);
-	const previewQuantity = Number.isFinite(parsedQuickAdjust) && parsedQuickAdjust > 0
-		? Math.max(0, currentQuantity + (stockAdjustMode === 'IN' ? parsedQuickAdjust : -parsedQuickAdjust))
-		: currentQuantity;
+	const previewQuantity =
+		Number.isFinite(parsedQuickAdjust) && parsedQuickAdjust > 0
+			? Math.max(
+					0,
+					currentQuantity + (stockAdjustMode === 'IN' ? parsedQuickAdjust : -parsedQuickAdjust)
+				)
+			: currentQuantity;
 
 	return (
 		<div className={`modal-overlay ${isOpen ? 'active' : ''}`} onClick={onClose}>
@@ -119,9 +124,7 @@ export function EquipmentFormModal({
 				style={{ display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}
 			>
 				<div className="modal-header" style={{ flexShrink: 0 }}>
-					<h2 className="modal-title">
-						{equipment ? 'Edit Equipment' : 'Add Equipment'}
-					</h2>
+					<h2 className="modal-title">{equipment ? 'Edit Equipment' : 'Add Equipment'}</h2>
 					<button type="button" className="modal-close" onClick={onClose} aria-label="Close">
 						<X size={24} />
 					</button>
@@ -145,7 +148,7 @@ export function EquipmentFormModal({
 							</div>
 							<div className="form-group">
 								<label htmlFor="status">Status *</label>
-								<select
+								<UiSelect
 									id="status"
 									name="status"
 									required
@@ -155,7 +158,7 @@ export function EquipmentFormModal({
 									<option value={EquipmentStatus.Available}>Available</option>
 									<option value={EquipmentStatus.Damaged}>Damaged</option>
 									<option value={EquipmentStatus.Undermaintenance}>Under maintenance</option>
-								</select>
+								</UiSelect>
 							</div>
 							<div className="form-group">
 								<label htmlFor="quantity">Quantity *</label>
@@ -205,7 +208,10 @@ export function EquipmentFormModal({
 									</div>
 									<div className="flex flex-wrap items-end gap-2">
 										<div className="min-w-[120px] flex-1">
-											<label htmlFor="quick-stock-amount" className="mb-1 block text-xs text-[var(--text-secondary)]">
+											<label
+												htmlFor="quick-stock-amount"
+												className="mb-1 block text-xs text-[var(--text-secondary)]"
+											>
 												Amount
 											</label>
 											<input
@@ -221,7 +227,9 @@ export function EquipmentFormModal({
 									</div>
 									<div className="mt-2 text-xs text-[var(--text-secondary)]">
 										Preview quantity after save:{' '}
-										<span className="font-semibold text-[var(--text-primary)]">{previewQuantity}</span>
+										<span className="font-semibold text-[var(--text-primary)]">
+											{previewQuantity}
+										</span>
 									</div>
 								</div>
 							) : null}
@@ -294,11 +302,7 @@ export function EquipmentFormModal({
 										</p>
 									</div>
 								)}
-								<input
-									type="hidden"
-									name="imageUrl"
-									defaultValue={equipment?.imageUrl ?? ''}
-								/>
+								<input type="hidden" name="imageUrl" defaultValue={equipment?.imageUrl ?? ''} />
 								<input
 									id="imageFile"
 									name="imageFile"
@@ -310,12 +314,14 @@ export function EquipmentFormModal({
 						</div>
 					</div>
 					<div className="modal-footer" style={{ flexShrink: 0 }}>
-						<button
-							type="submit"
-							className="btn-primary"
-							disabled={isLoading || uploading}
-						>
-							{uploading ? 'Uploading image...' : isLoading ? 'Saving...' : equipment ? 'Update' : 'Create'}
+						<button type="submit" className="btn-primary" disabled={isLoading || uploading}>
+							{uploading
+								? 'Uploading image...'
+								: isLoading
+									? 'Saving...'
+									: equipment
+										? 'Update'
+										: 'Create'}
 						</button>
 					</div>
 				</form>

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
 import { ExportDownloadDropdown } from '@/components/ExportDownloadDropdown';
 import { Button } from '@/components/ui/button';
+import { UiSelect } from '@/components/ui/UiSelect';
 import { Plus, Dumbbell, AlertTriangle } from 'lucide-react';
 import { EquipmentFormModal, type EquipmentFormData } from '@/components/modals/EquipmentFormModal';
 import { EquipmentViewModal } from '@/components/modals/EquipmentViewModal';
@@ -599,19 +600,19 @@ export function EquipmentPage() {
 			? enhancedQuery.error
 			: modernQuery.error;
 	const list = (data?.getEquipments ?? []) as any[];
-	const normalizedList = useLegacyApi
-		? list.map((item) => {
-				const legacyMeta = parseLegacyArchiveMeta(item.notes);
-				return {
-					...item,
-					isArchived: legacyMeta.isArchived,
-					archiveReason: legacyMeta.archiveReason,
-					archivedAt: legacyMeta.archivedAt,
-					notes: legacyMeta.cleanNotes,
-					legacyRawNotes: item.notes ?? null,
-				};
-			})
-		: list;
+	const normalizedList = list.map((item) => {
+		const legacyMeta = parseLegacyArchiveMeta(item.notes);
+		if (!legacyMeta.isArchived) return item;
+
+		return {
+			...item,
+			isArchived: Boolean(item.isArchived) || legacyMeta.isArchived,
+			archiveReason: item.archiveReason || legacyMeta.archiveReason,
+			archivedAt: item.archivedAt || legacyMeta.archivedAt,
+			notes: legacyMeta.cleanNotes,
+			legacyRawNotes: item.notes ?? null,
+		};
+	});
 	const refreshEquipmentList = async () => {
 		if (useLegacyApi) {
 			await legacyQuery.refetch();
@@ -662,6 +663,9 @@ export function EquipmentPage() {
 		const total = Math.max(0, Number(item.quantity ?? 0));
 		const reserved = Math.max(0, Number(item.reservedQuantityInWindow ?? 0));
 		const availableUnits = Math.max(0, total - reserved);
+		if (item.isArchived) {
+			return { badge: 'Archived - Not in active inventory', textClass: 'text-[#9CA3AF]' };
+		}
 		if (status === 'UNDERMAINTENANCE') {
 			return { badge: 'Unavailable - Maintenance', textClass: 'text-[#F59E0B]' };
 		}
@@ -914,26 +918,36 @@ export function EquipmentPage() {
 	};
 
 	const handleRestore = async (item: any) => {
-		if (useLegacyApi) {
-			const legacyMeta = parseLegacyArchiveMeta(item.legacyRawNotes ?? item.notes);
-			await updateEquipmentLegacyMeta({
-				variables: {
-					id: item.id,
-					input: { notes: legacyMeta.cleanNotes ?? '' },
-				},
-			});
-			recordEquipmentAction({
-				equipmentId: item.id,
-				equipmentName: item.name,
-				actionType: 'RESTORED',
-			});
-			setSuccessMessage('Equipment restored to current list.');
-			setIsSuccessOpen(true);
-			dispatch(addToast({ type: 'success', message: 'Equipment restored.' }));
-			return;
+		const legacyMeta = parseLegacyArchiveMeta(item.legacyRawNotes ?? item.notes);
+		try {
+			if (legacyMeta.isArchived) {
+				await updateEquipmentLegacyMeta({
+					variables: {
+						id: item.id,
+						input: { notes: legacyMeta.cleanNotes ?? '' },
+					},
+				});
+			}
+
+			if (useLegacyApi) {
+				recordEquipmentAction({
+					equipmentId: item.id,
+					equipmentName: item.name,
+					actionType: 'RESTORED',
+				});
+				setSuccessMessage('Equipment restored to current list.');
+				setIsSuccessOpen(true);
+				dispatch(addToast({ type: 'success', message: 'Equipment restored.' }));
+				return;
+			}
+
+			pendingRestoreActionRef.current = { equipmentId: item.id, equipmentName: item.name };
+			await unarchiveEquipment({ variables: { id: item.id } });
+		} catch (error: unknown) {
+			pendingRestoreActionRef.current = null;
+			const message = error instanceof Error ? error.message : 'Unable to restore equipment.';
+			dispatch(addToast({ type: 'error', message }));
 		}
-		pendingRestoreActionRef.current = { equipmentId: item.id, equipmentName: item.name };
-		await unarchiveEquipment({ variables: { id: item.id } });
 	};
 
 	const handleFormSubmit = async (formData: EquipmentFormData) => {
@@ -1382,11 +1396,11 @@ export function EquipmentPage() {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold flex items-center gap-2">
+					<h1 className="admin-page-title">
 						<Dumbbell className="w-8 h-8" color="var(--primary-yellow)" />
 						Equipment
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400 mt-1">
+					<p className="admin-page-subtitle">
 						Manage gym equipment shown in the app ({visibleList.length} shown)
 					</p>
 				</div>
@@ -1415,7 +1429,7 @@ export function EquipmentPage() {
 							Archived
 						</button>
 					</div>
-					<select
+					<UiSelect
 						aria-label="Filter equipment by condition"
 						value={statusFilter}
 						onChange={(e) => setStatusFilter(e.target.value as 'ALL' | EquipmentStatus)}
@@ -1425,7 +1439,7 @@ export function EquipmentPage() {
 						<option value={EquipmentStatus.Available}>Available</option>
 						<option value={EquipmentStatus.Damaged}>Damaged</option>
 						<option value={EquipmentStatus.Undermaintenance}>Under maintenance</option>
-					</select>
+					</UiSelect>
 					<input
 						type="text"
 						value={searchTerm}
@@ -1585,17 +1599,29 @@ export function EquipmentPage() {
 									</div>
 									<div className="mt-auto flex gap-3 pt-2">
 										{item.isArchived ? (
-											<button
-												type="button"
-												onClick={(e) => {
-													e.stopPropagation();
-													handleRestore(item);
-												}}
-												disabled={restoring}
-												className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(16,185,129,0.35)] bg-[rgba(16,185,129,0.14)] px-4 text-sm font-semibold text-[#34D399] transition hover:bg-[rgba(16,185,129,0.2)] disabled:opacity-60"
-											>
-												{restoring ? 'Restoring...' : 'Restore'}
-											</button>
+											<div className="flex w-full gap-3">
+												<button
+													type="button"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleEdit(item);
+													}}
+													className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.04)] px-4 text-sm font-semibold text-[var(--text-primary)] transition hover:bg-[rgba(255,255,255,0.075)]"
+												>
+													Edit
+												</button>
+												<button
+													type="button"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleRestore(item);
+													}}
+													disabled={restoring || updatingLegacyMeta}
+													className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(16,185,129,0.35)] bg-[rgba(16,185,129,0.14)] px-4 text-sm font-semibold text-[#34D399] transition hover:bg-[rgba(16,185,129,0.2)] disabled:opacity-60"
+												>
+													{restoring || updatingLegacyMeta ? 'Restoring...' : 'Restore'}
+												</button>
+											</div>
 										) : (
 											<div className="flex w-full gap-3">
 												<div className="flex-1">
@@ -1722,7 +1748,7 @@ export function EquipmentPage() {
 								<label className="block text-sm text-[var(--text-secondary)] mb-2">
 									Reason for archiving <span className="text-[#EF4444]">*</span>
 								</label>
-								<select
+								<UiSelect
 									value={archiveReasonOption}
 									onChange={(e) =>
 										setArchiveReasonOption(
@@ -1738,7 +1764,7 @@ export function EquipmentPage() {
 											{reason}
 										</option>
 									))}
-								</select>
+								</UiSelect>
 							</div>
 							{archiveReasonOption === 'Other' && (
 								<div className="mb-4 text-left">

@@ -36,6 +36,7 @@ import { ExportDownloadDropdown } from '@/components/ExportDownloadDropdown';
 import { DirectSubscribeModal } from '@/components/modals/DirectSubscribeModal';
 import { AdjustSubscriptionDurationModal } from '@/components/modals/AdjustSubscriptionDurationModal';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { UiSelect } from '@/components/ui/UiSelect';
 import { exportTableCsv } from '@/lib/csvExport';
 import { exportTablePdf } from '@/lib/pdfExport';
 import { isMembershipExpiredForNotification, memberDisplayName } from '@/lib/membershipExpiry';
@@ -958,11 +959,11 @@ export function MembersPage() {
 			{/* Page Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold flex items-center gap-2">
+					<h1 className="admin-page-title">
 						<Users className="w-8 h-8" color="var(--primary-yellow)" />
 						Member Management
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400 mt-1">
+					<p className="admin-page-subtitle">
 						Manage all gym members, view details, and update information ({apiMembers.length} total,{' '}
 						{filteredMembers.length} filtered)
 					</p>
@@ -983,7 +984,7 @@ export function MembersPage() {
 							className="w-full pl-10 pr-4 py-2.5 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--primary-yellow)] focus:ring-[3px] focus:ring-[rgba(249,197,19,0.1)]"
 						/>
 					</div>
-					<select
+					<UiSelect
 						value={statusFilter}
 						onChange={(e) => setStatusFilter(e.target.value)}
 						aria-label="Filter members by status"
@@ -994,8 +995,8 @@ export function MembersPage() {
 						<option value="Inactive">Inactive</option>
 						<option value="Pending">Pending</option>
 						<option value="Disabled">Disabled</option>
-					</select>
-					<select
+					</UiSelect>
+					<UiSelect
 						value={membershipFilter}
 						onChange={(e) => setMembershipFilter(e.target.value)}
 						aria-label="Filter members by membership"
@@ -1007,7 +1008,7 @@ export function MembersPage() {
 								{plan}
 							</option>
 						))}
-					</select>
+					</UiSelect>
 				</div>
 			</div>
 

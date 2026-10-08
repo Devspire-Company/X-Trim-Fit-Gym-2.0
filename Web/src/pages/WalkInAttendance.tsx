@@ -3,6 +3,7 @@ import { useQuery, useMutation, useApolloClient } from '@apollo/client';
 import { subDays } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
+import { UiSelect } from '@/components/ui/UiSelect';
 import {
 	SEARCH_WALK_IN_CLIENTS,
 	WALK_IN_ATTENDANCE_LOGS,
@@ -240,7 +241,7 @@ export function WalkInAttendancePage() {
 
 	const { data: paymentSettingsData, refetch: refetchPaymentSettings } = useQuery(
 		WALK_IN_PAYMENT_SETTINGS,
-		{ fetchPolicy: 'cache-and-network' },
+		{ fetchPolicy: 'cache-and-network' }
 	);
 	const [updateWalkInFee, { loading: savingFee }] = useMutation(UPDATE_WALK_IN_PAYMENT_SETTINGS, {
 		onCompleted: () => {
@@ -458,7 +459,9 @@ export function WalkInAttendancePage() {
 				return;
 			}
 			if (ageParsed < 10) {
-				dispatch(addToast({ type: 'error', message: 'Walk-in profiles must be at least 10 years old.' }));
+				dispatch(
+					addToast({ type: 'error', message: 'Walk-in profiles must be at least 10 years old.' })
+				);
 				return;
 			}
 
@@ -468,7 +471,7 @@ export function WalkInAttendancePage() {
 					addToast({
 						type: 'error',
 						message: 'Upload the signed waiver image before saving this profile.',
-					}),
+					})
 				);
 				return;
 			}
@@ -481,7 +484,7 @@ export function WalkInAttendancePage() {
 							waiverType === 'minor'
 								? 'Please upload a minor waiver image for guests under 18.'
 								: 'Please upload an adult waiver image for guests 18 and above.',
-					}),
+					})
 				);
 				return;
 			}
@@ -492,7 +495,7 @@ export function WalkInAttendancePage() {
 							type: 'error',
 							message:
 								'Guests under 18 need a parent/guardian liability waiver: check the box and enter the guardian full name.',
-						}),
+						})
 					);
 					return;
 				}
@@ -557,7 +560,9 @@ export function WalkInAttendancePage() {
 				return;
 			}
 			if (ageParsed < 10) {
-				dispatch(addToast({ type: 'error', message: 'Walk-in profiles must be at least 10 years old.' }));
+				dispatch(
+					addToast({ type: 'error', message: 'Walk-in profiles must be at least 10 years old.' })
+				);
 				return;
 			}
 
@@ -568,7 +573,7 @@ export function WalkInAttendancePage() {
 							type: 'error',
 							message:
 								'Guests under 18 need a parent/guardian liability waiver: check the box and enter the guardian full name.',
-						}),
+						})
 					);
 					return;
 				}
@@ -680,7 +685,7 @@ export function WalkInAttendancePage() {
 			(r: { client: WalkInClientRow; timeInCount: number }) => ({
 				client: r.client,
 				timeInCount: r.timeInCount,
-			}),
+			})
 		);
 
 		for (let offset = rows.length; offset < total; offset += pageSize) {
@@ -695,7 +700,7 @@ export function WalkInAttendancePage() {
 				...pageRows.map((r: { client: WalkInClientRow; timeInCount: number }) => ({
 					client: r.client,
 					timeInCount: r.timeInCount,
-				})),
+				}))
 			);
 			total = data?.walkInAccountsOverview?.totalWalkInAccounts ?? total;
 		}
@@ -754,7 +759,12 @@ export function WalkInAttendancePage() {
 				]),
 			},
 		];
-		return { sections, exportRowsLen: exportRows.length, exportTotal, accountsLen: allAccounts.length };
+		return {
+			sections,
+			exportRowsLen: exportRows.length,
+			exportTotal,
+			accountsLen: allAccounts.length,
+		};
 	};
 
 	const handleExportPdf = async () => {
@@ -782,20 +792,20 @@ export function WalkInAttendancePage() {
 	};
 
 	return (
-		<div className="p-6 md:p-10 max-w-[1400px] mx-auto space-y-8">
+		<div className="p-4 md:p-6 max-w-[1400px] mx-auto space-y-5">
 			<div>
-				<h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] flex items-center gap-3">
+				<h1 className="admin-page-title">
 					<UserPlus className="w-8 h-8 text-[var(--primary-yellow)]" />
 					Walk-in attendance
 				</h1>
-				<p className="text-[var(--text-secondary)] mt-2 max-w-3xl">
+				<p className="admin-page-subtitle max-w-3xl">
 					Register first-time walk-ins, record time-in for returning guests, look up anyone&apos;s
 					full visit history, and review daily logs. Times use{' '}
 					<strong className="text-[var(--text-primary)]">Asia/Manila</strong>.
 				</p>
 			</div>
 
-			<div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row sm:items-end gap-4">
+			<div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-4 flex flex-col sm:flex-row sm:items-end gap-3">
 				<div className="flex-1 min-w-0">
 					<h2 className="text-sm font-semibold text-[var(--text-primary)] mb-1">
 						Default time-in payment (₱)
@@ -810,7 +820,7 @@ export function WalkInAttendancePage() {
 						aria-label="Default walk-in fee in pesos"
 						value={feeDraft}
 						onChange={(e) => setFeeDraft(e.target.value)}
-						className="w-full max-w-[200px] rounded-xl border border-[var(--card-border)] bg-[rgba(255,255,255,0.04)] px-3 py-2.5 font-['Inter',sans-serif] text-sm tabular-nums text-[var(--text-primary)] focus:border-[var(--primary-yellow)] focus:outline-none focus:ring-[3px] focus:ring-[rgba(249,197,19,0.12)]"
+						className="h-9 w-full max-w-[180px] rounded-lg border border-[var(--card-border)] bg-[rgba(255,255,255,0.04)] px-3 font-['Inter',sans-serif] text-[13px] tabular-nums text-[var(--text-primary)] focus:border-[rgba(255,255,255,0.24)] focus:outline-none"
 					/>
 				</div>
 				<button
@@ -824,27 +834,33 @@ export function WalkInAttendancePage() {
 						}
 						updateWalkInFee({ variables: { paymentPesos: n } });
 					}}
-					className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.06)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-all hover:border-[var(--primary-yellow)] hover:bg-[rgba(249,197,19,0.1)] disabled:pointer-events-none disabled:opacity-50"
+					className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.05)] px-3 text-[13px] font-medium text-[var(--text-primary)] transition-colors hover:border-[rgba(255,255,255,0.2)] hover:bg-[rgba(255,255,255,0.075)] disabled:pointer-events-none disabled:opacity-50"
 				>
-					{savingFee ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+					{savingFee ? (
+						<Loader2 className="h-4 w-4 animate-spin" />
+					) : (
+						<CheckCircle2 className="h-4 w-4" />
+					)}
 					Save default fee
 				</button>
 			</div>
 
 			{/* Date toolbar */}
-			<div className="flex flex-col gap-4 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-4 md:p-5 sm:flex-row sm:items-center sm:justify-between">
-				<div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
-					<span className="text-sm font-medium text-[var(--text-secondary)]">View logs for</span>
+			<div className="flex flex-col gap-3 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex min-w-0 flex-col gap-2.5 lg:flex-row lg:items-center lg:gap-3">
+					<span className="text-[13px] font-medium text-[var(--text-secondary)]">
+						View logs for
+					</span>
 					<div className="flex flex-wrap items-center gap-2">
 						<div
-							className="inline-flex rounded-xl border border-[var(--card-border)] bg-[rgba(0,0,0,0.22)] p-1"
+							className="inline-flex h-9 rounded-lg border border-[var(--card-border)] bg-[rgba(0,0,0,0.22)] p-0.5"
 							role="group"
 							aria-label="Quick log date"
 						>
 							<button
 								type="button"
 								onClick={() => setLogDate(todayYmd)}
-								className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+								className={`inline-flex items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition-colors ${
 									isToday
 										? 'bg-[rgba(249,197,19,0.18)] text-[var(--text-primary)] ring-1 ring-[rgba(249,197,19,0.35)]'
 										: 'text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--text-primary)]'
@@ -856,7 +872,7 @@ export function WalkInAttendancePage() {
 							<button
 								type="button"
 								onClick={() => setLogDate(manilaYmdMinusOneDay(todayYmd))}
-								className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+								className={`inline-flex items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium transition-colors ${
 									logDate === manilaYmdMinusOneDay(todayYmd)
 										? 'bg-[rgba(249,197,19,0.18)] text-[var(--text-primary)] ring-1 ring-[rgba(249,197,19,0.35)]'
 										: 'text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--text-primary)]'
@@ -865,43 +881,44 @@ export function WalkInAttendancePage() {
 								Yesterday
 							</button>
 						</div>
-						<div className="flex items-center gap-1.5">
+						<div className="flex max-w-full flex-none items-center gap-1.5">
 							<button
 								type="button"
 								aria-label="Previous day"
-								className="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--primary-yellow)]"
+								className="grid h-9 w-8 place-items-center rounded-lg text-[var(--text-secondary)] transition-colors hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--text-primary)]"
 								onClick={() => setLogDate((d) => manilaYmdMinusOneDay(d))}
 							>
-								<ChevronLeft className="h-5 w-5" />
+								<ChevronLeft className="h-4 w-4" />
 							</button>
-							<div className="w-[min(100%,220px)]">
+							<div className="w-[240px] max-w-[calc(100vw-9rem)] shrink-0">
 								<DatePicker
 									date={parseYmdToManilaDate(logDate)}
 									onDateChange={(d) => d && setLogDate(formatManilaYmdFromDate(d))}
 									placeholder="Pick date"
-									className="!w-full min-w-[180px]"
+									className="!w-full"
+									compact
 								/>
 							</div>
 							<button
 								type="button"
 								aria-label="Next day"
-								className="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--primary-yellow)]"
+								className="grid h-9 w-8 place-items-center rounded-lg text-[var(--text-secondary)] transition-colors hover:bg-[rgba(255,255,255,0.06)] hover:text-[var(--text-primary)]"
 								onClick={() => setLogDate((d) => manilaYmdPlusOneDay(d))}
 							>
-								<ChevronRight className="h-5 w-5" />
+								<ChevronRight className="h-4 w-4" />
 							</button>
 						</div>
 					</div>
 				</div>
-				<div className="flex flex-wrap items-center justify-end gap-2 text-sm">
+				<div className="flex flex-wrap items-center justify-end gap-2 text-[13px]">
 					<span className="text-[var(--text-secondary)]">Entries</span>
-					<span className="rounded-lg border border-[rgba(249,197,19,0.25)] bg-[rgba(249,197,19,0.12)] px-3 py-1 font-semibold font-['Inter',sans-serif] tabular-nums text-[var(--primary-yellow)]">
+					<span className="grid h-8 min-w-8 place-items-center rounded-lg border border-[rgba(249,197,19,0.25)] bg-[rgba(249,197,19,0.1)] px-2 font-semibold font-['Inter',sans-serif] tabular-nums text-[var(--primary-yellow)]">
 						{logsLoading ? '…' : totalCount}
 					</span>
 					<button
 						type="button"
 						onClick={() => setNewModalOpen(true)}
-						className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary-yellow)] px-4 py-2.5 text-sm font-semibold text-[#1a1a1a] shadow-md transition-transform hover:brightness-105 active:translate-y-px"
+						className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[var(--primary-yellow)] px-3 text-[13px] font-semibold text-[#1a1a1a] transition-colors hover:bg-[#f0c63f]"
 					>
 						<UserPlus className="h-4 w-4" />
 						New walk-in
@@ -909,12 +926,13 @@ export function WalkInAttendancePage() {
 					<button
 						type="button"
 						onClick={() => setReturningModalOpen(true)}
-						className="inline-flex items-center gap-2 rounded-xl border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.05)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--primary-yellow)] hover:bg-[rgba(249,197,19,0.08)]"
+						className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.04)] px-3 text-[13px] font-medium text-[var(--text-primary)] transition-colors hover:border-[rgba(255,255,255,0.22)] hover:bg-[rgba(255,255,255,0.07)]"
 					>
 						<Search className="h-4 w-4" />
 						Returning walk-in
 					</button>
 					<ExportDownloadDropdown
+						className="!h-9 !rounded-lg !px-3 !py-0 !text-[13px]"
 						onExportPdf={() => void handleExportPdf()}
 						onExportCsv={() => void handleExportCsv()}
 					/>
@@ -922,8 +940,8 @@ export function WalkInAttendancePage() {
 			</div>
 
 			{/* Logs table */}
-			<div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden">
-				<div className="px-6 py-4 border-b border-[var(--card-border)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+			<div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl overflow-hidden">
+				<div className="px-4 py-3 border-b border-[var(--card-border)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 					<h2 className="text-lg font-semibold text-[var(--text-primary)]">
 						Logs for {logDate}
 						{isToday && (
@@ -1010,11 +1028,11 @@ export function WalkInAttendancePage() {
 			</div>
 
 			{/* Person full history */}
-			<div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-6 md:p-8">
-				<div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+			<div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-4 md:p-5">
+				<div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
 					<div>
-						<h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
-							<History className="w-5 h-5 text-[var(--primary-yellow)]" />
+						<h2 className="text-base font-semibold text-[var(--text-primary)] flex items-center gap-2">
+							<History className="w-4 h-4 text-[var(--primary-yellow)]" />
 							Search a walk-in & view all their time-ins
 						</h2>
 						<p className="text-sm text-[var(--text-secondary)] mt-1">
@@ -1183,10 +1201,10 @@ export function WalkInAttendancePage() {
 			</div>
 
 			{/* All walk-in accounts */}
-			<div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-6 md:p-8">
-				<div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+			<div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-4 md:p-5">
+				<div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
 					<div>
-						<h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+						<h2 className="text-base font-semibold text-[var(--text-primary)] flex items-center gap-2">
 							<Users className="w-5 h-5 text-[var(--primary-yellow)]" />
 							All walk-in accounts
 						</h2>
@@ -1195,8 +1213,8 @@ export function WalkInAttendancePage() {
 						</p>
 						{useAccountsFallback && (
 							<p className="text-xs text-[var(--text-secondary)] mt-2">
-								Showing list via search fallback. Deploy the latest API for per-row time-in counts from
-								the overview query.
+								Showing list via search fallback. Deploy the latest API for per-row time-in counts
+								from the overview query.
 							</p>
 						)}
 					</div>
@@ -1219,8 +1237,8 @@ export function WalkInAttendancePage() {
 				{accountsOverviewError && (
 					<div className="mb-4 rounded-xl border border-[rgba(249,197,19,0.35)] bg-[rgba(249,197,19,0.08)] px-4 py-3 text-sm text-[var(--text-secondary)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 						<span>
-							Overview query failed ({accountsOverviewError.message}). Using list + stats fallback if
-							available.
+							Overview query failed ({accountsOverviewError.message}). Using list + stats fallback
+							if available.
 						</span>
 						<Button
 							type="button"
@@ -1309,7 +1327,8 @@ export function WalkInAttendancePage() {
 							<span className="text-[var(--text-primary)] font-medium">
 								{accountsRangeStart}–{accountsRangeEnd}
 							</span>{' '}
-							of <span className="text-[var(--text-primary)] font-medium">{totalWalkInAccounts}</span>
+							of{' '}
+							<span className="text-[var(--text-primary)] font-medium">{totalWalkInAccounts}</span>
 						</p>
 						<div className="flex items-center gap-2">
 							<Button
@@ -1410,7 +1429,7 @@ export function WalkInAttendancePage() {
 							<label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
 								Gender <span className="text-red-400">*</span>
 							</label>
-							<select
+							<UiSelect
 								aria-label="Gender"
 								value={gender}
 								onChange={(e) => setGender(e.target.value as WalkInGender)}
@@ -1420,7 +1439,7 @@ export function WalkInAttendancePage() {
 								<option value={WalkInGender.Female}>Female</option>
 								<option value={WalkInGender.NonBinary}>Non-binary</option>
 								<option value={WalkInGender.PreferNotToSay}>Prefer not to say</option>
-							</select>
+							</UiSelect>
 						</div>
 						<div className="sm:col-span-2">
 							<label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
@@ -1441,9 +1460,9 @@ export function WalkInAttendancePage() {
 						{showNewMinorBlock && (
 							<div className="sm:col-span-2 space-y-3 rounded-xl border border-[rgba(249,197,19,0.28)] bg-[rgba(249,197,19,0.07)] p-4">
 								<p className="text-xs leading-relaxed text-[var(--text-secondary)]">
-									Guests under 18 cannot use the gym without a parent/guardian liability waiver on file.
-									Confirm below so the gym is not held responsible if an incident occurs during the
-									visit.
+									Guests under 18 cannot use the gym without a parent/guardian liability waiver on
+									file. Confirm below so the gym is not held responsible if an incident occurs
+									during the visit.
 								</p>
 								<div>
 									<label className="mb-1 block text-sm font-medium text-[var(--text-primary)]">
@@ -1694,7 +1713,7 @@ export function WalkInAttendancePage() {
 							<label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
 								Gender <span className="text-red-400">*</span>
 							</label>
-							<select
+							<UiSelect
 								aria-label="Gender"
 								value={editGender}
 								onChange={(e) => setEditGender(e.target.value as WalkInGender)}
@@ -1704,7 +1723,7 @@ export function WalkInAttendancePage() {
 								<option value={WalkInGender.Female}>Female</option>
 								<option value={WalkInGender.NonBinary}>Non-binary</option>
 								<option value={WalkInGender.PreferNotToSay}>Prefer not to say</option>
-							</select>
+							</UiSelect>
 						</div>
 						<div className="sm:col-span-2">
 							<label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
@@ -1725,8 +1744,8 @@ export function WalkInAttendancePage() {
 						{showEditMinorBlock && (
 							<div className="sm:col-span-2 space-y-3 rounded-xl border border-[rgba(249,197,19,0.28)] bg-[rgba(249,197,19,0.07)] p-4">
 								<p className="text-xs leading-relaxed text-[var(--text-secondary)]">
-									Guests under 18 need a guardian liability waiver on file. Update the guardian name and
-									confirm acknowledgment before saving.
+									Guests under 18 need a guardian liability waiver on file. Update the guardian name
+									and confirm acknowledgment before saving.
 								</p>
 								<div>
 									<label className="mb-1 block text-sm font-medium text-[var(--text-primary)]">

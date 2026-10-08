@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useMutation, useQuery } from '@apollo/client';
-import { Bell, CheckCheck, LoaderCircle, Trash2 } from 'lucide-react';
+import { Bell, CheckCheck, LoaderCircle, Trash2, X } from 'lucide-react';
 import {
 	DELETE_ALL_MY_NOTIFICATIONS,
 	DELETE_MY_NOTIFICATION,
@@ -19,10 +20,36 @@ type NotificationRow = {
 };
 
 export function SystemNotificationBell() {
-	const notificationsEnabled = import.meta.env.VITE_ENABLE_SYSTEM_NOTIFICATIONS !== 'false';
+	const notificationsAvailable = import.meta.env.VITE_ENABLE_SYSTEM_NOTIFICATIONS !== 'false';
+	const [notificationsEnabled, setNotificationsEnabled] = useState(() =>
+		notificationsAvailable
+			? window.localStorage.getItem('xtrimfitgym.systemNotificationsEnabled') !== 'false'
+			: false
+	);
 	const [open, setOpen] = useState(false);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [actionError, setActionError] = useState<string | null>(null);
+	const [pendingDelete, setPendingDelete] = useState<{
+		scope: 'one' | 'all';
+		id?: string;
+		title?: string;
+	} | null>(null);
+
+	useEffect(() => {
+		const handlePreference = (event: Event) => {
+			const customEvent = event as CustomEvent<{ enabled: boolean }>;
+			setNotificationsEnabled(notificationsAvailable && customEvent.detail.enabled);
+			if (!customEvent.detail.enabled) {
+				setOpen(false);
+				setPendingDelete(null);
+			}
+		};
+
+		window.addEventListener('xtrimfitgym:notification-preference', handlePreference);
+		return () =>
+			window.removeEventListener('xtrimfitgym:notification-preference', handlePreference);
+	}, [notificationsAvailable]);
+
 	const { data, refetch } = useQuery<{ getMyNotifications: NotificationRow[] }>(
 		GET_MY_NOTIFICATIONS,
 		{
@@ -39,6 +66,17 @@ export function SystemNotificationBell() {
 	});
 	const [deleteOne] = useMutation(DELETE_MY_NOTIFICATION);
 	const [deleteAll, { loading: deletingAll }] = useMutation(DELETE_ALL_MY_NOTIFICATIONS);
+
+	useEffect(() => {
+		if (!pendingDelete) return;
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape' && !deletingAll && deletingId === null) {
+				setPendingDelete(null);
+			}
+		};
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, [pendingDelete, deletingAll, deletingId]);
 
 	const notifications = useMemo(() => data?.getMyNotifications || [], [data]);
 	const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications]);
@@ -61,6 +99,7 @@ export function SystemNotificationBell() {
 			setDeletingId(id);
 			await deleteOne({ variables: { id } });
 			await refetch();
+			setPendingDelete(null);
 		} catch {
 			setActionError('Could not delete the notification. Please try again.');
 		} finally {
@@ -70,12 +109,12 @@ export function SystemNotificationBell() {
 
 	const onDeleteAll = async () => {
 		if (notifications.length === 0) return;
-		if (!window.confirm('Delete all notifications? This action cannot be undone.')) return;
 
 		try {
 			setActionError(null);
 			await deleteAll();
 			await refetch();
+			setPendingDelete(null);
 		} catch {
 			setActionError('Could not clear the notifications. Please try again.');
 		}
@@ -116,7 +155,7 @@ export function SystemNotificationBell() {
 							{notifications.length > 0 && (
 								<button
 									type="button"
-									onClick={() => void onDeleteAll()}
+									onClick={() => setPendingDelete({ scope: 'all' })}
 									disabled={deletingAll}
 									className="text-xs text-[var(--text-secondary)] hover:text-red-400 flex items-center gap-1 disabled:opacity-50"
 								>
@@ -168,7 +207,7 @@ export function SystemNotificationBell() {
 									</button>
 									<button
 										type="button"
-										onClick={() => void onDeleteOne(n.id)}
+										onClick={() => setPendingDelete({ scope: 'one', id: n.id, title: n.title })}
 										disabled={deletingId === n.id}
 										className="absolute right-3 top-3 p-1.5 rounded-md text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-red-400 hover:bg-red-500/10 disabled:opacity-50 transition"
 										aria-label={`Delete ${n.title} notification`}
@@ -185,6 +224,70 @@ export function SystemNotificationBell() {
 					</div>
 				</div>
 			)}
+
+			{pendingDelete &&
+				createPortal(
+					<div className="modal-overlay active" onClick={() => setPendingDelete(null)}>
+						<div
+							className="modal modal-center notification-confirm-modal"
+							onClick={(event) => event.stopPropagation()}
+							role="dialog"
+							aria-modal="true"
+							aria-labelledby="notification-delete-title"
+						>
+							<div className="modal-body">
+								<button
+									type="button"
+									className="modal-close-button"
+									onClick={() => setPendingDelete(null)}
+									aria-label="Close confirmation"
+								>
+									<X className="w-4 h-4" />
+								</button>
+								<div className="notification-delete-icon">
+									<Trash2 className="w-6 h-6" />
+								</div>
+								<h3 id="notification-delete-title" className="modal-logout-title">
+									{pendingDelete.scope === 'all'
+										? 'Clear all notifications?'
+										: 'Delete this notification?'}
+								</h3>
+								<p className="modal-logout-text">
+									{pendingDelete.scope === 'all'
+										? `This will permanently remove all ${notifications.length} notifications from your account.`
+										: `"${pendingDelete.title}" will be permanently removed from your account.`}
+								</p>
+								<div className="modal-logout-actions">
+									<button
+										type="button"
+										className="btn-secondary"
+										onClick={() => setPendingDelete(null)}
+										disabled={deletingAll || deletingId !== null}
+									>
+										Cancel
+									</button>
+									<button
+										type="button"
+										className="btn-danger"
+										disabled={deletingAll || deletingId !== null}
+										onClick={() => {
+											if (pendingDelete.scope === 'all') void onDeleteAll();
+											else if (pendingDelete.id) void onDeleteOne(pendingDelete.id);
+										}}
+									>
+										{deletingAll || deletingId !== null ? (
+											<LoaderCircle className="w-4 h-4 animate-spin" />
+										) : (
+											<Trash2 className="w-4 h-4" />
+										)}
+										{pendingDelete.scope === 'all' ? 'Clear all' : 'Delete'}
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>,
+					document.body
+				)}
 		</div>
 	);
 }

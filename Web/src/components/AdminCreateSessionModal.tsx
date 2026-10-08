@@ -2,6 +2,7 @@ import { useMemo, useEffect, useState } from 'react';
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
+import { UiSelect } from '@/components/ui/UiSelect';
 import { X, Calendar as CalendarIcon, Clock3, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CREATE_SESSION, GET_USERS } from '@/graphql/operations/index';
@@ -147,7 +148,12 @@ function CustomTimePicker({ id, label, value, onChange, required, min }: CustomT
 						className="w-full flex items-center gap-2 rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] px-3 py-2 text-sm text-[var(--text-primary)]"
 					>
 						<Clock3 className="h-4 w-4 text-[var(--text-secondary)]" />
-						<span className={cn('flex-1 text-left', value ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]')}>
+						<span
+							className={cn(
+								'flex-1 text-left',
+								value ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
+							)}
+						>
 							{value ? formatDisplayTime(value) : '--:-- --'}
 						</span>
 						<ChevronDown className="h-4 w-4 text-[var(--text-secondary)]" />
@@ -155,7 +161,7 @@ function CustomTimePicker({ id, label, value, onChange, required, min }: CustomT
 				</PopoverTrigger>
 				<PopoverContent className="w-[260px] p-3" align="start" style={{ zIndex: 9999 }}>
 					<div className="grid grid-cols-3 gap-2">
-						<select
+						<UiSelect
 							aria-label={`${label} hour`}
 							title={`${label} hour`}
 							value={parsed.hour12}
@@ -167,8 +173,8 @@ function CustomTimePicker({ id, label, value, onChange, required, min }: CustomT
 									{h.toString().padStart(2, '0')}
 								</option>
 							))}
-						</select>
-						<select
+						</UiSelect>
+						<UiSelect
 							aria-label={`${label} minute`}
 							title={`${label} minute`}
 							value={parsed.minute}
@@ -180,8 +186,8 @@ function CustomTimePicker({ id, label, value, onChange, required, min }: CustomT
 									{m.toString().padStart(2, '0')}
 								</option>
 							))}
-						</select>
-						<select
+						</UiSelect>
+						<UiSelect
 							aria-label={`${label} meridiem`}
 							title={`${label} meridiem`}
 							value={parsed.meridiem}
@@ -190,7 +196,7 @@ function CustomTimePicker({ id, label, value, onChange, required, min }: CustomT
 						>
 							<option value="am">AM</option>
 							<option value="pm">PM</option>
-						</select>
+						</UiSelect>
 					</div>
 					<div className="mt-2 flex justify-end">
 						<Button type="button" size="sm" onClick={() => setOpen(false)}>
@@ -228,12 +234,7 @@ type Props = {
 	onCreated?: () => void;
 };
 
-export function AdminCreateSessionModal({
-	isOpen,
-	onClose,
-	coaches,
-	onCreated,
-}: Props) {
+export function AdminCreateSessionModal({ isOpen, onClose, coaches, onCreated }: Props) {
 	const [coachId, setCoachId] = useState('');
 	const [memberSearch, setMemberSearch] = useState('');
 	const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
@@ -242,7 +243,11 @@ export function AdminCreateSessionModal({
 	const [startTimeStr, setStartTimeStr] = useState('');
 	const [endTimeStr, setEndTimeStr] = useState('');
 	const [gymArea, setGymArea] = useState('');
-	const [scheduleDays, setScheduleDays] = useState<WeekdayValue[]>(['monday', 'wednesday', 'friday']);
+	const [scheduleDays, setScheduleDays] = useState<WeekdayValue[]>([
+		'monday',
+		'wednesday',
+		'friday',
+	]);
 	const [note, setNote] = useState('');
 	const [isGroupClass, setIsGroupClass] = useState(false);
 	const [maxParticipants, setMaxParticipants] = useState('20');
@@ -302,8 +307,7 @@ export function AdminCreateSessionModal({
 					? Math.max(0, Number(x.reservedQuantityInWindow || 0))
 					: 0;
 				const availableUnits = Math.max(0, quantity - reserved);
-				const unavailableByStatus =
-					status === 'UNDERMAINTENANCE' || status === 'DAMAGED';
+				const unavailableByStatus = status === 'UNDERMAINTENANCE' || status === 'DAMAGED';
 				const unavailableByWindow = hasReservationWindow && reserved > 0 && availableUnits <= 0;
 				const selectable = !unavailableByStatus && quantity > 0 && !unavailableByWindow;
 				const rightText = unavailableByStatus
@@ -360,9 +364,7 @@ export function AdminCreateSessionModal({
 	};
 
 	const removeEquipment = (equipmentId: string) => {
-		setManualEquipmentSelections((prev) =>
-			prev.filter((x) => x.equipmentId !== equipmentId)
-		);
+		setManualEquipmentSelections((prev) => prev.filter((x) => x.equipmentId !== equipmentId));
 	};
 
 	const updateEquipmentQty = (equipmentId: string, quantityRaw: string) => {
@@ -386,8 +388,7 @@ export function AdminCreateSessionModal({
 	const membersWithMembership = useMemo(() => {
 		const list = membersData?.getUsers ?? [];
 		return list.filter(
-			(u): u is NonNullable<typeof u> =>
-				u != null && memberHasActiveSubscription(u)
+			(u): u is NonNullable<typeof u> => u != null && memberHasActiveSubscription(u)
 		);
 	}, [membersData?.getUsers]);
 
@@ -397,9 +398,7 @@ export function AdminCreateSessionModal({
 		return membersWithMembership.filter((u) => {
 			const name = [u.firstName, u.middleName, u.lastName].filter(Boolean).join(' ').toLowerCase();
 			return (
-				name.includes(q) ||
-				u.email.toLowerCase().includes(q) ||
-				u.id.toLowerCase().includes(q)
+				name.includes(q) || u.email.toLowerCase().includes(q) || u.id.toLowerCase().includes(q)
 			);
 		});
 	}, [memberSearch, membersWithMembership]);
@@ -488,8 +487,7 @@ export function AdminCreateSessionModal({
 						note: note.trim() || undefined,
 						sessionKind: SessionKind.GroupClass,
 						maxParticipants: mp,
-						invitedClientIds:
-							selectedMemberIds.length > 0 ? selectedMemberIds : undefined,
+						invitedClientIds: selectedMemberIds.length > 0 ? selectedMemberIds : undefined,
 						equipmentReservations:
 							manualEquipmentSelections.length > 0
 								? manualEquipmentSelections.map((row) => ({
@@ -497,7 +495,7 @@ export function AdminCreateSessionModal({
 										quantity: row.quantity,
 										reservedStartTime: startTimeString,
 										reservedEndTime: endTimeString,
-								  }))
+									}))
 								: undefined,
 					} as any,
 				},
@@ -530,7 +528,7 @@ export function AdminCreateSessionModal({
 									quantity: row.quantity,
 									reservedStartTime: startTimeString,
 									reservedEndTime: endTimeString,
-							  }))
+								}))
 							: undefined,
 				} as any,
 			},
@@ -546,10 +544,7 @@ export function AdminCreateSessionModal({
 	if (!isOpen) return null;
 
 	return (
-		<div
-			className="modal modal-large admin-session-modal"
-			onClick={(e) => e.stopPropagation()}
-		>
+		<div className="modal modal-large admin-session-modal" onClick={(e) => e.stopPropagation()}>
 			<div className="modal-header admin-session-modal-header">
 				<h3>
 					<CalendarIcon className="w-5 h-5" />
@@ -578,7 +573,7 @@ export function AdminCreateSessionModal({
 						<label htmlFor="admin-session-coach">
 							Coach <span className="required">*</span>
 						</label>
-						<select
+						<UiSelect
 							id="admin-session-coach"
 							value={coachId}
 							onChange={(e) => setCoachId(e.target.value)}
@@ -591,13 +586,11 @@ export function AdminCreateSessionModal({
 									{c.name}
 								</option>
 							))}
-						</select>
+						</UiSelect>
 					</div>
 
 					<div className="form-group">
-						<label
-							className="!inline-flex !items-center gap-3 cursor-pointer mb-0 select-none"
-						>
+						<label className="!inline-flex !items-center gap-3 cursor-pointer mb-0 select-none">
 							<input
 								type="checkbox"
 								id="admin-session-group-class"
@@ -650,9 +643,7 @@ export function AdminCreateSessionModal({
 								</p>
 							) : (
 								filteredMembers.map((u) => {
-									const label = [u.firstName, u.middleName, u.lastName]
-										.filter(Boolean)
-										.join(' ');
+									const label = [u.firstName, u.middleName, u.lastName].filter(Boolean).join(' ');
 									const checked = selectedMemberIds.includes(u.id);
 									return (
 										<label
@@ -679,8 +670,12 @@ export function AdminCreateSessionModal({
 												✓
 											</span>
 											<div className="min-w-0 leading-tight">
-												<div className="text-[var(--text-primary)] font-medium truncate">{label}</div>
-												<div className="text-[var(--text-secondary)] text-xs break-all">{u.email}</div>
+												<div className="text-[var(--text-primary)] font-medium truncate">
+													{label}
+												</div>
+												<div className="text-[var(--text-secondary)] text-xs break-all">
+													{u.email}
+												</div>
 											</div>
 										</label>
 									);
@@ -755,7 +750,7 @@ export function AdminCreateSessionModal({
 						<label htmlFor="admin-session-area">
 							Gym area <span className="required">*</span>
 						</label>
-						<select
+						<UiSelect
 							id="admin-session-area"
 							value={gymArea}
 							onChange={(e) => setGymArea(e.target.value)}
@@ -768,7 +763,7 @@ export function AdminCreateSessionModal({
 									{a.label}
 								</option>
 							))}
-						</select>
+						</UiSelect>
 					</div>
 
 					<div className="form-group">
@@ -777,26 +772,26 @@ export function AdminCreateSessionModal({
 						</label>
 						<div className="rounded-2xl border border-[var(--card-border)] bg-[rgba(255,255,255,0.02)] p-3">
 							<div className="flex flex-wrap gap-2 mb-3">
-								{SCHEDULE_PRESETS.map((preset) => (
+								{SCHEDULE_PRESETS.map((preset) =>
 									(() => {
 										const isActive = areSameWeekdaySet(scheduleDays, preset.days);
 										return (
-									<button
-										key={preset.label}
-										type="button"
-										onClick={() => applySchedulePreset(preset.days)}
-										className={cn(
-											'rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors',
-											isActive
-												? 'border-[rgba(96,165,250,0.75)] bg-[rgba(96,165,250,0.18)] text-[#bfdbfe]'
-												: 'border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[rgba(96,165,250,0.4)]'
-										)}
-									>
-										{preset.label}
-									</button>
+											<button
+												key={preset.label}
+												type="button"
+												onClick={() => applySchedulePreset(preset.days)}
+												className={cn(
+													'rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors',
+													isActive
+														? 'border-[rgba(96,165,250,0.75)] bg-[rgba(96,165,250,0.18)] text-[#bfdbfe]'
+														: 'border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[rgba(96,165,250,0.4)]'
+												)}
+											>
+												{preset.label}
+											</button>
 										);
 									})()
-								))}
+								)}
 							</div>
 							<div className="flex flex-wrap gap-2.5">
 								{WEEKDAY_OPTIONS.map((day) => {
@@ -839,7 +834,7 @@ export function AdminCreateSessionModal({
 
 					<div className="form-group">
 						<label htmlFor="admin-session-equipment-picker">Add equipment manually</label>
-						<select
+						<UiSelect
 							id="admin-session-equipment-picker"
 							value={equipmentPickerValue}
 							onChange={(e) => {
@@ -860,7 +855,7 @@ export function AdminCreateSessionModal({
 									{`${eq.name} (${eq.rightText})`}
 								</option>
 							))}
-						</select>
+						</UiSelect>
 						{manualEquipmentSelections.length > 0 ? (
 							<div className="mt-2 space-y-2">
 								{manualEquipmentSelections.map((row) => {
@@ -891,9 +886,7 @@ export function AdminCreateSessionModal({
 													type="number"
 													min={1}
 													value={row.quantity}
-													onChange={(e) =>
-														updateEquipmentQty(row.equipmentId, e.target.value)
-													}
+													onChange={(e) => updateEquipmentQty(row.equipmentId, e.target.value)}
 													title={`Quantity for ${eq.name}`}
 													aria-label={`Quantity for ${eq.name}`}
 													className="w-24 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] px-2 py-1.5 text-sm text-[var(--text-primary)]"

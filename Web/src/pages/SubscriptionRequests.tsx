@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { Button } from '@/components/ui/button';
+import { UiSelect } from '@/components/ui/UiSelect';
 import { ExportDownloadDropdown } from '@/components/ExportDownloadDropdown';
 import { X as XIcon, Clock, CheckCircle2, XCircle, Search } from 'lucide-react';
 import { GET_ALL_SUBSCRIPTION_REQUESTS } from '@/graphql/operations/index';
@@ -11,7 +12,9 @@ import { useAppSelector } from '@/store/hooks';
 
 const LIVE_UPDATE_INTERVAL_MS = 1500;
 
-function userFullName(u: { firstName?: string | null; lastName?: string | null } | null | undefined) {
+function userFullName(
+	u: { firstName?: string | null; lastName?: string | null } | null | undefined
+) {
 	if (!u) return '';
 	return `${u.firstName || ''} ${u.lastName || ''}`.trim();
 }
@@ -21,7 +24,8 @@ export function SubscriptionRequestsPage() {
 		document.title = 'Subscription Requests - X-TRIM FIT GYM';
 	}, []);
 
-	type SubscriptionRequestItem = GetAllSubscriptionRequestsQuery['getAllSubscriptionRequests'][number];
+	type SubscriptionRequestItem =
+		GetAllSubscriptionRequestsQuery['getAllSubscriptionRequests'][number];
 	const currentUser = useAppSelector((state) => state.auth.user);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -101,7 +105,15 @@ export function SubscriptionRequestsPage() {
 		});
 	};
 
-	const subscriptionExportHead = ['Member', 'Email', 'Plan', 'Price', 'Status', 'Requested At', 'Processed By'];
+	const subscriptionExportHead = [
+		'Member',
+		'Email',
+		'Plan',
+		'Price',
+		'Status',
+		'Requested At',
+		'Processed By',
+	];
 	const subscriptionExportRows = filteredRequests.map((request) => [
 		`${request.member?.firstName || ''} ${request.member?.lastName || ''}`.trim() || 'N/A',
 		request.member?.email || 'N/A',
@@ -160,18 +172,27 @@ export function SubscriptionRequestsPage() {
 			<div className="flex items-center justify-center min-h-[400px]">
 				<div className="text-center">
 					<div className="text-red-500 mb-4">
-						<svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+						<svg
+							className="w-16 h-16 mx-auto"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
 						</svg>
 					</div>
-					<h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Unable to Load Subscription Requests</h2>
+					<h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">
+						Unable to Load Subscription Requests
+					</h2>
 					<p className="text-[var(--text-secondary)] mb-4">
 						{error?.message || 'Failed to connect to the server'}
 					</p>
-					<button 
-						onClick={() => refetch()} 
-						className="btn-primary"
-					>
+					<button onClick={() => refetch()} className="btn-primary">
 						Retry
 					</button>
 				</div>
@@ -183,7 +204,8 @@ export function SubscriptionRequestsPage() {
 		const statusMap: Record<string, { label: string; className: string; icon: any }> = {
 			PENDING: {
 				label: 'Pending',
-				className: 'bg-[rgba(249,197,19,0.15)] text-[var(--primary-yellow)] border-[rgba(249,197,19,0.3)]',
+				className:
+					'bg-[rgba(249,197,19,0.15)] text-[var(--primary-yellow)] border-[rgba(249,197,19,0.3)]',
 				icon: Clock,
 			},
 			APPROVED: {
@@ -232,12 +254,13 @@ export function SubscriptionRequestsPage() {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between gap-3">
 				<div>
-					<h1 className="text-3xl font-bold flex items-center gap-2">
+					<h1 className="admin-page-title">
 						<Clock className="w-8 h-8" color="var(--primary-yellow)" />
 						Subscription Requests
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400 mt-1">
-						Manage all subscription requests from members ({filteredRequests.length} of {activeRequests.length} shown)
+					<p className="admin-page-subtitle">
+						Manage all subscription requests from members ({filteredRequests.length} of{' '}
+						{activeRequests.length} shown)
 					</p>
 				</div>
 				<ExportDownloadDropdown onExportPdf={handleExportPdf} onExportCsv={handleExportCsv} />
@@ -245,7 +268,7 @@ export function SubscriptionRequestsPage() {
 
 			{/* Search and Filter Bar */}
 			<div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-4">
-				<div className="flex flex-col md:flex-row gap-4">
+				<div className="search-filter-bar flex flex-col md:flex-row gap-4">
 					{/* Search Input */}
 					<div className="flex-1 relative">
 						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
@@ -260,7 +283,7 @@ export function SubscriptionRequestsPage() {
 
 					{/* Status Filter */}
 					<div className="md:w-48">
-						<select
+						<UiSelect
 							value={statusFilter}
 							onChange={(e) => setStatusFilter(e.target.value)}
 							aria-label="Filter subscription requests by status"
@@ -269,7 +292,7 @@ export function SubscriptionRequestsPage() {
 							<option value="all">All Status</option>
 							<option value="PENDING">Pending</option>
 							<option value="APPROVED">Approved</option>
-						</select>
+						</UiSelect>
 					</div>
 
 					{/* Clear Filters Button */}
@@ -294,7 +317,9 @@ export function SubscriptionRequestsPage() {
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="text-sm text-[var(--text-secondary)] mb-1">Pending Requests</p>
-							<p className="text-2xl font-bold text-[var(--text-primary)]">{pendingRequests.length}</p>
+							<p className="text-2xl font-bold text-[var(--text-primary)]">
+								{pendingRequests.length}
+							</p>
 						</div>
 						<Clock className="w-8 h-8 text-[var(--primary-yellow)]" />
 					</div>
@@ -303,7 +328,9 @@ export function SubscriptionRequestsPage() {
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="text-sm text-[var(--text-secondary)] mb-1">Approved</p>
-							<p className="text-2xl font-bold text-[var(--text-primary)]">{approvedRequests.length}</p>
+							<p className="text-2xl font-bold text-[var(--text-primary)]">
+								{approvedRequests.length}
+							</p>
 						</div>
 						<CheckCircle2 className="w-8 h-8 text-[#10B981]" />
 					</div>
@@ -348,56 +375,70 @@ export function SubscriptionRequestsPage() {
 								filteredRequests.map((request) => {
 									const sentAgo = formatRelativeSince(request.requestedAt);
 									return (
-									<tr key={request.id} className="hover:bg-[rgba(255,255,255,0.02)]">
-										<td className="px-6 py-4 whitespace-nowrap">
-											<div>
-												<p className="text-sm font-medium text-[var(--text-primary)]">
-													{request.member?.firstName} {request.member?.lastName}
-												</p>
-												<p className="text-xs text-[var(--text-secondary)]">{request.member?.email}</p>
-											</div>
-										</td>
-										<td className="px-6 py-4">
-											<div>
-												<p className="text-sm font-medium text-[var(--text-primary)]">
-													{request.membership?.name}
-												</p>
-												<p className="text-xs text-[var(--text-secondary)]">
-													₱{request.membership?.monthlyPrice?.toLocaleString()} / {request.membership?.monthDuration || 1} month{request.membership?.monthDuration !== 1 ? 's' : ''}
-												</p>
-											</div>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<p className="text-sm text-[var(--text-primary)]">{formatDate(request.requestedAt)}</p>
-											{sentAgo ? (
-												<p className="text-xs text-[var(--text-secondary)] mt-0.5">Sent {sentAgo}</p>
-											) : null}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(request.status)}</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											{request.status === 'APPROVED' ? (
+										<tr key={request.id} className="hover:bg-[rgba(255,255,255,0.02)]">
+											<td className="px-6 py-4 whitespace-nowrap">
 												<div>
-													<p className="text-sm text-[var(--text-primary)]">
-														{userFullName(request.approvedBy) || 'Not recorded'}
+													<p className="text-sm font-medium text-[var(--text-primary)]">
+														{request.member?.firstName} {request.member?.lastName}
 													</p>
-													{request.approvedAt ? (
-														<p className="text-xs text-[var(--text-secondary)]">{formatDate(request.approvedAt)}</p>
-													) : null}
+													<p className="text-xs text-[var(--text-secondary)]">
+														{request.member?.email}
+													</p>
 												</div>
-											) : request.status === 'REJECTED' ? (
+											</td>
+											<td className="px-6 py-4">
 												<div>
-													<p className="text-sm text-[var(--text-primary)]">
-														{userFullName(request.rejectedBy) || 'Not recorded'}
+													<p className="text-sm font-medium text-[var(--text-primary)]">
+														{request.membership?.name}
 													</p>
-													{request.rejectedAt ? (
-														<p className="text-xs text-[var(--text-secondary)]">{formatDate(request.rejectedAt)}</p>
-													) : null}
+													<p className="text-xs text-[var(--text-secondary)]">
+														₱{request.membership?.monthlyPrice?.toLocaleString()} /{' '}
+														{request.membership?.monthDuration || 1} month
+														{request.membership?.monthDuration !== 1 ? 's' : ''}
+													</p>
 												</div>
-											) : (
-												<p className="text-sm text-[var(--text-secondary)]">—</p>
-											)}
-										</td>
-									</tr>
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<p className="text-sm text-[var(--text-primary)]">
+													{formatDate(request.requestedAt)}
+												</p>
+												{sentAgo ? (
+													<p className="text-xs text-[var(--text-secondary)] mt-0.5">
+														Sent {sentAgo}
+													</p>
+												) : null}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												{getStatusBadge(request.status)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												{request.status === 'APPROVED' ? (
+													<div>
+														<p className="text-sm text-[var(--text-primary)]">
+															{userFullName(request.approvedBy) || 'Not recorded'}
+														</p>
+														{request.approvedAt ? (
+															<p className="text-xs text-[var(--text-secondary)]">
+																{formatDate(request.approvedAt)}
+															</p>
+														) : null}
+													</div>
+												) : request.status === 'REJECTED' ? (
+													<div>
+														<p className="text-sm text-[var(--text-primary)]">
+															{userFullName(request.rejectedBy) || 'Not recorded'}
+														</p>
+														{request.rejectedAt ? (
+															<p className="text-xs text-[var(--text-secondary)]">
+																{formatDate(request.rejectedAt)}
+															</p>
+														) : null}
+													</div>
+												) : (
+													<p className="text-sm text-[var(--text-secondary)]">—</p>
+												)}
+											</td>
+										</tr>
 									);
 								})
 							)}

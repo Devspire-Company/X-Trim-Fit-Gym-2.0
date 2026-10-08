@@ -1115,11 +1115,11 @@ export function ReportsPage() {
 		<div className="space-y-6">
 			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
-					<h1 className="text-3xl font-bold flex items-center gap-2">
+					<h1 className="admin-page-title">
 						<BarChart3 className="w-8 h-8" color="var(--primary-yellow)" />
 						Reports & Analytics
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400 mt-1">
+					<p className="admin-page-subtitle">
 						Comprehensive insights and analytics for your gym operations
 					</p>
 				</div>

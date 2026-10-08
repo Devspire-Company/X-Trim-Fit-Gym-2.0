@@ -388,11 +388,11 @@ export function MembershipsPage() {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold flex items-center gap-2">
+					<h1 className="admin-page-title">
 						<CreditCard className="w-8 h-8" color="var(--primary-yellow)" />
 						Membership Management
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400 mt-1">
+					<p className="admin-page-subtitle">
 						Manage membership plans, pricing, and features (
 						{activeTab === 'active' ? plans.length : removedPlans.length}{' '}
 						{activeTab === 'active' ? 'plans' : 'removed'})

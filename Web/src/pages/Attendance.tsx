@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { ExportDownloadDropdown } from '@/components/ExportDownloadDropdown';
 import { DatePicker } from '@/components/ui/date-picker';
+import { UiSelect } from '@/components/ui/UiSelect';
 import { Calendar } from '@/components/ui/calendar';
 import {
 	GET_ATTENDANCE_RECORDS,
@@ -71,7 +72,9 @@ async function loadImageAsDataUrl(path: string): Promise<string | null> {
 	}
 }
 
-async function getImageDimensions(dataUrl: string): Promise<{ width: number; height: number } | null> {
+async function getImageDimensions(
+	dataUrl: string
+): Promise<{ width: number; height: number } | null> {
 	return await new Promise((resolve) => {
 		const img = new Image();
 		img.onload = () => {
@@ -122,10 +125,7 @@ function formatDateToYmd(date: Date): string {
 }
 
 function normalizePersonName(value: string | null | undefined): string {
-	return (value || '')
-		.toLowerCase()
-		.replace(/\s+/g, ' ')
-		.trim();
+	return (value || '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 function getDateKeyManila(iso: string): string {
@@ -151,7 +151,10 @@ function getThisMonthRangeYmd(): { start: string; end: string } {
 }
 
 function buildUserNameCandidates(
-	user: { firstName?: string | null; middleName?: string | null; lastName?: string | null } | null | undefined
+	user:
+		| { firstName?: string | null; middleName?: string | null; lastName?: string | null }
+		| null
+		| undefined
 ): string[] {
 	if (!user) return [];
 	const first = (user.firstName || '').trim();
@@ -286,10 +289,7 @@ export function AttendancePage() {
 		}, 60_000);
 		return () => clearInterval(interval);
 	}, []);
-	const todayFilter = useMemo(
-		() => ({ startDate: todayStr, endDate: todayStr }),
-		[todayStr]
-	);
+	const todayFilter = useMemo(() => ({ startDate: todayStr, endDate: todayStr }), [todayStr]);
 
 	// Poll only when tab is visible so we don't refetch in background
 	// Slightly slower than 5s to ease Render free-tier + Railway MySQL load; subscriptions still push updates.
@@ -369,33 +369,43 @@ export function AttendancePage() {
 	}, [data, selectedRange]);
 
 	// Real-time subscription for new records
-	useSubscription(
-		ATTENDANCE_RECORD_ADDED,
-		{
-			onData: ({ data: subData, error: subError }: { data?: unknown; error?: Error }) => {
-				if (subError) {
-					return;
-				}
-				const raw = (subData as { data?: { attendanceRecordAdded?: AttendanceRecord }; attendanceRecordAdded?: AttendanceRecord })?.data?.attendanceRecordAdded ?? (subData as { attendanceRecordAdded?: AttendanceRecord })?.attendanceRecordAdded;
-				const newRecord = raw as AttendanceRecord | undefined;
-				if (newRecord) {
-					setLastUpdateTime(new Date());
-					setRecords((prevRecords) => {
-						const exists = prevRecords.some(
-							(r) => r.id === newRecord.id && r.authDateTime === newRecord.authDateTime
-						);
-						if (exists) return prevRecords;
-						setTotalCount((prev) => prev + 1);
-						return [newRecord, ...prevRecords];
-					});
-				}
-			},
-		}
-	);
+	useSubscription(ATTENDANCE_RECORD_ADDED, {
+		onData: ({ data: subData, error: subError }: { data?: unknown; error?: Error }) => {
+			if (subError) {
+				return;
+			}
+			const raw =
+				(
+					subData as {
+						data?: { attendanceRecordAdded?: AttendanceRecord };
+						attendanceRecordAdded?: AttendanceRecord;
+					}
+				)?.data?.attendanceRecordAdded ??
+				(subData as { attendanceRecordAdded?: AttendanceRecord })?.attendanceRecordAdded;
+			const newRecord = raw as AttendanceRecord | undefined;
+			if (newRecord) {
+				setLastUpdateTime(new Date());
+				setRecords((prevRecords) => {
+					const exists = prevRecords.some(
+						(r) => r.id === newRecord.id && r.authDateTime === newRecord.authDateTime
+					);
+					if (exists) return prevRecords;
+					setTotalCount((prev) => prev + 1);
+					return [newRecord, ...prevRecords];
+				});
+			}
+		},
+	});
 
 	// Also subscribe to batch updates
 	useSubscription(ATTENDANCE_UPDATED, {
-		onData: ({ data: subData, error: subError }: { data?: { data?: { attendanceUpdated?: AttendanceRecord[] } }; error?: Error }) => {
+		onData: ({
+			data: subData,
+			error: subError,
+		}: {
+			data?: { data?: { attendanceUpdated?: AttendanceRecord[] } };
+			error?: Error;
+		}) => {
 			if (subError) {
 				return;
 			}
@@ -404,9 +414,7 @@ export function AttendancePage() {
 				const newRecords = batchData;
 				setLastUpdateTime(new Date());
 				setRecords((prevRecords) => {
-					const existingIds = new Set(
-						prevRecords.map((r) => `${r.id}-${r.authDateTime}`)
-					);
+					const existingIds = new Set(prevRecords.map((r) => `${r.id}-${r.authDateTime}`));
 					const uniqueNewRecords = newRecords.filter(
 						(r: AttendanceRecord) => !existingIds.has(`${r.id}-${r.authDateTime}`)
 					);
@@ -551,18 +559,26 @@ export function AttendancePage() {
 			const timeOut = outTimes.length > 0 ? outTimes[outTimes.length - 1] : '—';
 			const hasIn = timeIn !== '—';
 			const hasOut = timeOut !== '—';
-			const logType = hasIn && hasOut ? 'Time In / Time Out' : hasIn ? 'Time In only' : hasOut ? 'Time Out only' : '—';
+			const logType =
+				hasIn && hasOut
+					? 'Time In / Time Out'
+					: hasIn
+						? 'Time In only'
+						: hasOut
+							? 'Time Out only'
+							: '—';
 			return {
 				key: groupKey,
 				personName: group.personName,
 				cardNo: group.cardNo,
 				dateKey: group.dateKey,
-				date: parseYmdToDate(group.dateKey)?.toLocaleDateString('en-PH', {
-					timeZone: 'Asia/Manila',
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric',
-				}) || group.dateKey,
+				date:
+					parseYmdToDate(group.dateKey)?.toLocaleDateString('en-PH', {
+						timeZone: 'Asia/Manila',
+						year: 'numeric',
+						month: 'short',
+						day: 'numeric',
+					}) || group.dateKey,
 				timeIn,
 				timeOut,
 				logType,
@@ -578,7 +594,10 @@ export function AttendancePage() {
 	}, [filteredRecords]);
 
 	const { coachRecords, clientRecords, otherRecords } = useMemo(() => {
-		const categorize = (row: { cardNo: string; personName: string }): 'coach' | 'client' | 'other' => {
+		const categorize = (row: {
+			cardNo: string;
+			personName: string;
+		}): 'coach' | 'client' | 'other' => {
 			const normalizedName = normalizePersonName(row.personName);
 			// Priority: coach match first so coach scans never fall into clients.
 			if (row.cardNo && coachAttendanceIds.has(row.cardNo)) return 'coach';
@@ -597,7 +616,13 @@ export function AttendancePage() {
 			else other.push(row);
 		}
 		return { coachRecords: coach, clientRecords: client, otherRecords: other };
-	}, [summarizedRecords, coachAttendanceIds, memberAttendanceIds, coachNameCandidates, memberNameCandidates]);
+	}, [
+		summarizedRecords,
+		coachAttendanceIds,
+		memberAttendanceIds,
+		coachNameCandidates,
+		memberNameCandidates,
+	]);
 	const showCoachSection = roleFilter !== 'client';
 	const showClientSection = roleFilter !== 'coach';
 	const [mobileCoachCalendarMonth, setMobileCoachCalendarMonth] = useState<Date>(() => new Date());
@@ -730,7 +755,8 @@ export function AttendancePage() {
 		}
 
 		const totalTrackable = checkedInDates.length + notCheckedInDates.length;
-		const checkRate = totalTrackable > 0 ? Math.round((checkedInDates.length / totalTrackable) * 100) : 0;
+		const checkRate =
+			totalTrackable > 0 ? Math.round((checkedInDates.length / totalTrackable) * 100) : 0;
 
 		let selectedDayStatus: null | 'checked-in' | 'not-checked-in' = null;
 		if (selectedCoachCalendarDate) {
@@ -747,7 +773,12 @@ export function AttendancePage() {
 			checkRate,
 			selectedDayStatus,
 		};
-	}, [selectedCoachCalendarKey, coachRecordsByDay.byCoach, mobileCoachCalendarMonth, selectedCoachCalendarDate]);
+	}, [
+		selectedCoachCalendarKey,
+		coachRecordsByDay.byCoach,
+		mobileCoachCalendarMonth,
+		selectedCoachCalendarDate,
+	]);
 
 	// Today's records count: always current day from API, not affected by list date filter
 	const todaysRecordsCount = dataToday?.getAttendanceRecords?.totalCount ?? 0;
@@ -832,7 +863,13 @@ export function AttendancePage() {
 		};
 
 		const formatExportRows = (
-			rows: Array<{ personName: string; date: string; timeIn: string; timeOut: string; logType: string }>
+			rows: Array<{
+				personName: string;
+				date: string;
+				timeIn: string;
+				timeOut: string;
+				logType: string;
+			}>
 		): ExportRow[] =>
 			rows.map((row) => ({
 				member: row.personName,
@@ -849,10 +886,10 @@ export function AttendancePage() {
 			...(shouldShowCoaches ? coachExportRows : []),
 			...(shouldShowClients ? clientExportRows : []),
 		];
-		const exportedByLabel = [currentUser?.firstName, currentUser?.lastName]
-			.filter(Boolean)
-			.join(' ')
-			.trim() || currentUser?.email || 'System';
+		const exportedByLabel =
+			[currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ').trim() ||
+			currentUser?.email ||
+			'System';
 
 		doc.setFontSize(16);
 		doc.setFont(interReady ? 'Inter' : 'helvetica', 'bold');
@@ -903,7 +940,9 @@ export function AttendancePage() {
 				alternateRowStyles: { fillColor: [245, 245, 248] },
 				margin: { left: 14, right: 14 },
 			});
-			nextY = ((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY || nextY + 12) + 8;
+			nextY =
+				((doc as unknown as { lastAutoTable?: { finalY?: number } }).lastAutoTable?.finalY ||
+					nextY + 12) + 8;
 		}
 		if (shouldShowClients) {
 			doc.setFontSize(11);
@@ -1013,19 +1052,19 @@ export function AttendancePage() {
 			{/* Header */}
 			<div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
 				<div>
-					<h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+					<h1 className="admin-page-title">
 						<Fingerprint className="w-6 h-6" />
 						Attendance Logs
 					</h1>
-					<p className="text-[var(--text-secondary)] mt-1">
-						Real-time attendance monitoring
-					</p>
+					<p className="admin-page-subtitle">Real-time attendance monitoring</p>
 				</div>
 
 				<div className="grid grid-cols-2 gap-3 xl:w-[560px] xl:ml-auto xl:mr-3">
 					<div className="bg-[var(--bg-secondary)] rounded-lg px-4 py-3">
 						<p className="text-xs text-[var(--text-secondary)]">Total Records</p>
-						<p className="text-2xl font-bold text-[var(--text-primary)] leading-tight">{totalCount}</p>
+						<p className="text-2xl font-bold text-[var(--text-primary)] leading-tight">
+							{totalCount}
+						</p>
 					</div>
 					<div className="bg-[var(--bg-secondary)] rounded-lg px-4 py-3">
 						<p className="text-xs text-[var(--text-secondary)]">Today's Records</p>
@@ -1052,9 +1091,12 @@ export function AttendancePage() {
 								<WifiOff className="h-3.5 w-3.5 text-[#F87171]" />
 							</div>
 							<div className="min-w-0 flex-1">
-								<p className="text-xs font-semibold text-[#FCA5A5]">Biometric attendance service unavailable</p>
+								<p className="text-xs font-semibold text-[#FCA5A5]">
+									Biometric attendance service unavailable
+								</p>
 								<p className="text-xs text-[var(--text-secondary)]">
-									The system cannot reach the attendance database. Restore the biometric/iVMS-to-MySQL connection to resume live attendance monitoring.
+									The system cannot reach the attendance database. Restore the
+									biometric/iVMS-to-MySQL connection to resume live attendance monitoring.
 								</p>
 							</div>
 							<button
@@ -1083,7 +1125,7 @@ export function AttendancePage() {
 					{/* Role Filter */}
 					<div className="w-full flex items-center gap-2 px-3 py-2.5 bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.1)] rounded-[12px] text-[var(--text-primary)] text-sm transition-all duration-300 focus-within:border-[var(--primary-yellow)] focus-within:ring-2 focus-within:ring-[rgba(249,197,19,0.1)]">
 						<Filter className="w-4 h-4 text-[var(--text-secondary)] shrink-0" />
-						<select
+						<UiSelect
 							value={roleFilter}
 							onChange={(e) => setRoleFilter(e.target.value as 'all' | 'coach' | 'client')}
 							aria-label="Filter attendance by role"
@@ -1092,7 +1134,7 @@ export function AttendancePage() {
 							<option value="all">All Roles</option>
 							<option value="coach">Coaches</option>
 							<option value="client">Clients</option>
-						</select>
+						</UiSelect>
 					</div>
 
 					<button
@@ -1187,7 +1229,8 @@ export function AttendancePage() {
 				) : null}
 				{selectedRange ? (
 					<div className="rounded-xl border border-[rgba(249,197,19,0.32)] bg-[rgba(249,197,19,0.08)] px-3 py-2 text-xs font-medium text-[var(--text-primary)]">
-						Applied date range: <span className="text-[var(--primary-yellow)]">{selectedRange.label}</span>
+						Applied date range:{' '}
+						<span className="text-[var(--primary-yellow)]">{selectedRange.label}</span>
 					</div>
 				) : (
 					<div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-xs text-[var(--text-secondary)]">
@@ -1200,260 +1243,276 @@ export function AttendancePage() {
 			<div className="space-y-6">
 				{showCoachSection && (
 					<div className="bg-[var(--bg-secondary)] rounded-lg overflow-hidden">
-					<div className="px-4 py-3 border-b border-[var(--border-color)] flex items-center gap-2 bg-[var(--bg-primary)]">
-						<UserCog className="w-5 h-5 text-[var(--primary-yellow)] shrink-0" aria-hidden />
-						<h2 className="text-base font-semibold text-[var(--text-primary)]">Coaches</h2>
-						<span className="text-sm text-[var(--text-secondary)]">
-							({coachRecords.length} rows on this page)
-						</span>
-					</div>
-					<div className="border-b border-[var(--border-color)] p-4 lg:hidden">
-						<div className="rounded-xl border border-[rgba(249,197,19,0.25)] bg-[rgba(249,197,19,0.06)] p-3">
-							<div className="mb-3 flex items-center gap-2">
-								<CalendarDays className="h-4 w-4 text-[var(--primary-yellow)]" />
-								<p className="text-sm font-semibold text-[var(--text-primary)]">Coach attendance calendar</p>
-							</div>
-							{coachRecordsByDay.coachOptions.length > 0 ? (
-								<>
-									<select
-										value={selectedCoachCalendarKey}
-										onChange={(e) => setSelectedCoachCalendarKey(e.target.value)}
-										aria-label="Select coach for monthly calendar"
-										className="mb-3 w-full rounded-lg border border-[rgba(255,255,255,0.18)] bg-[rgba(255,255,255,0.06)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--primary-yellow)] focus:outline-none"
-									>
-										{coachRecordsByDay.coachOptions.map((coach) => (
-											<option key={coach.key} value={coach.key}>
-												{coach.label}
-											</option>
-										))}
-									</select>
-									<div className="mb-3 flex justify-center">
-										<Calendar
-											mode="single"
-											selected={selectedCoachCalendarDate}
-											onSelect={setSelectedCoachCalendarDate}
-											month={mobileCoachCalendarMonth}
-											onMonthChange={setMobileCoachCalendarMonth}
-											modifiers={{
-												checkedIn: mobileCoachCalendarSummary.checkedInDates,
-												notCheckedIn: mobileCoachCalendarSummary.notCheckedInDates,
-											}}
-											modifiersClassNames={{
-												checkedIn:
-													'bg-[rgba(16,185,129,0.18)] text-[#34D399] [&_button]:font-semibold',
-												notCheckedIn:
-													'bg-[rgba(239,68,68,0.12)] text-[#F87171] [&_button]:font-semibold',
-											}}
-											captionLayout="dropdown"
-											className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] p-2"
-										/>
-									</div>
-									<div className="mb-3 grid grid-cols-3 gap-2">
-										<div className="rounded-lg border border-[rgba(16,185,129,0.3)] bg-[rgba(16,185,129,0.1)] px-2 py-2 text-center">
-											<p className="text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">Checked in</p>
-											<p className="text-base font-semibold text-[#34D399]">{mobileCoachCalendarSummary.checkedInCount}</p>
+						<div className="px-4 py-3 border-b border-[var(--border-color)] flex items-center gap-2 bg-[var(--bg-primary)]">
+							<UserCog className="w-5 h-5 text-[var(--primary-yellow)] shrink-0" aria-hidden />
+							<h2 className="text-base font-semibold text-[var(--text-primary)]">Coaches</h2>
+							<span className="text-sm text-[var(--text-secondary)]">
+								({coachRecords.length} rows on this page)
+							</span>
+						</div>
+						<div className="border-b border-[var(--border-color)] p-4 lg:hidden">
+							<div className="rounded-xl border border-[rgba(249,197,19,0.25)] bg-[rgba(249,197,19,0.06)] p-3">
+								<div className="mb-3 flex items-center gap-2">
+									<CalendarDays className="h-4 w-4 text-[var(--primary-yellow)]" />
+									<p className="text-sm font-semibold text-[var(--text-primary)]">
+										Coach attendance calendar
+									</p>
+								</div>
+								{coachRecordsByDay.coachOptions.length > 0 ? (
+									<>
+										<UiSelect
+											value={selectedCoachCalendarKey}
+											onChange={(e) => setSelectedCoachCalendarKey(e.target.value)}
+											aria-label="Select coach for monthly calendar"
+											className="mb-3 w-full rounded-lg border border-[rgba(255,255,255,0.18)] bg-[rgba(255,255,255,0.06)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--primary-yellow)] focus:outline-none"
+										>
+											{coachRecordsByDay.coachOptions.map((coach) => (
+												<option key={coach.key} value={coach.key}>
+													{coach.label}
+												</option>
+											))}
+										</UiSelect>
+										<div className="mb-3 flex justify-center">
+											<Calendar
+												mode="single"
+												selected={selectedCoachCalendarDate}
+												onSelect={setSelectedCoachCalendarDate}
+												month={mobileCoachCalendarMonth}
+												onMonthChange={setMobileCoachCalendarMonth}
+												modifiers={{
+													checkedIn: mobileCoachCalendarSummary.checkedInDates,
+													notCheckedIn: mobileCoachCalendarSummary.notCheckedInDates,
+												}}
+												modifiersClassNames={{
+													checkedIn:
+														'bg-[rgba(16,185,129,0.18)] text-[#34D399] [&_button]:font-semibold',
+													notCheckedIn:
+														'bg-[rgba(239,68,68,0.12)] text-[#F87171] [&_button]:font-semibold',
+												}}
+												captionLayout="dropdown"
+												className="rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] p-2"
+											/>
 										</div>
-										<div className="rounded-lg border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.1)] px-2 py-2 text-center">
-											<p className="text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">Not checked-in</p>
-											<p className="text-base font-semibold text-[#F87171]">{mobileCoachCalendarSummary.notCheckedInCount}</p>
+										<div className="mb-3 grid grid-cols-3 gap-2">
+											<div className="rounded-lg border border-[rgba(16,185,129,0.3)] bg-[rgba(16,185,129,0.1)] px-2 py-2 text-center">
+												<p className="text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">
+													Checked in
+												</p>
+												<p className="text-base font-semibold text-[#34D399]">
+													{mobileCoachCalendarSummary.checkedInCount}
+												</p>
+											</div>
+											<div className="rounded-lg border border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.1)] px-2 py-2 text-center">
+												<p className="text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">
+													Not checked-in
+												</p>
+												<p className="text-base font-semibold text-[#F87171]">
+													{mobileCoachCalendarSummary.notCheckedInCount}
+												</p>
+											</div>
+											<div className="rounded-lg border border-[rgba(249,197,19,0.32)] bg-[rgba(249,197,19,0.12)] px-2 py-2 text-center">
+												<p className="text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">
+													Rate
+												</p>
+												<p className="text-base font-semibold text-[var(--primary-yellow)]">
+													{mobileCoachCalendarSummary.checkRate}%
+												</p>
+											</div>
 										</div>
-										<div className="rounded-lg border border-[rgba(249,197,19,0.32)] bg-[rgba(249,197,19,0.12)] px-2 py-2 text-center">
-											<p className="text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">Rate</p>
-											<p className="text-base font-semibold text-[var(--primary-yellow)]">{mobileCoachCalendarSummary.checkRate}%</p>
-										</div>
-									</div>
-									<div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
-										<span className="inline-flex items-center gap-1 rounded-full border border-[rgba(16,185,129,0.35)] bg-[rgba(16,185,129,0.12)] px-2 py-1 text-[#34D399]">
-											<CheckCircle2 className="h-3.5 w-3.5" />
-											Checked-in day
-										</span>
-										<span className="inline-flex items-center gap-1 rounded-full border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.12)] px-2 py-1 text-[#F87171]">
-											<XCircle className="h-3.5 w-3.5" />
-											Not checked-in day
-										</span>
-									</div>
-									{selectedCoachCalendarDate ? (
-										<div className="mt-3 rounded-lg border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-xs text-[var(--text-secondary)]">
-											{format(selectedCoachCalendarDate, 'MMMM d, yyyy')}:{' '}
-											<span
-												className={
-													mobileCoachCalendarSummary.selectedDayStatus === 'checked-in'
-														? 'font-semibold text-[#34D399]'
-														: 'font-semibold text-[#F87171]'
-												}
-											>
-												{mobileCoachCalendarSummary.selectedDayStatus === 'checked-in'
-													? 'Checked-in'
-													: 'Not checked-in'}
+										<div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
+											<span className="inline-flex items-center gap-1 rounded-full border border-[rgba(16,185,129,0.35)] bg-[rgba(16,185,129,0.12)] px-2 py-1 text-[#34D399]">
+												<CheckCircle2 className="h-3.5 w-3.5" />
+												Checked-in day
+											</span>
+											<span className="inline-flex items-center gap-1 rounded-full border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.12)] px-2 py-1 text-[#F87171]">
+												<XCircle className="h-3.5 w-3.5" />
+												Not checked-in day
 											</span>
 										</div>
-									) : null}
-								</>
-							) : (
-								<p className="text-xs text-[var(--text-secondary)]">No coach attendance data available for calendar review.</p>
-							)}
-						</div>
-					</div>
-					<div className="overflow-x-auto">
-						<table className="w-full">
-							<thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
-								<tr>
-									<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-										Person
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-										Date
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-										Time In
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-										Time Out
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-										Log Type
-									</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-[var(--border-color)]">
-								{summarizedRecords.length === 0 ? (
-									<tr>
-										<td colSpan={5} className="px-6 py-12 text-center">
-											<p className="text-[var(--text-secondary)]">No attendance records found</p>
-										</td>
-									</tr>
-								) : coachRecords.length === 0 ? (
-									<tr>
-										<td colSpan={5} className="px-6 py-8 text-center">
-											<p className="text-[var(--text-secondary)]">No coach records on this page</p>
-										</td>
-									</tr>
+										{selectedCoachCalendarDate ? (
+											<div className="mt-3 rounded-lg border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.03)] px-3 py-2 text-xs text-[var(--text-secondary)]">
+												{format(selectedCoachCalendarDate, 'MMMM d, yyyy')}:{' '}
+												<span
+													className={
+														mobileCoachCalendarSummary.selectedDayStatus === 'checked-in'
+															? 'font-semibold text-[#34D399]'
+															: 'font-semibold text-[#F87171]'
+													}
+												>
+													{mobileCoachCalendarSummary.selectedDayStatus === 'checked-in'
+														? 'Checked-in'
+														: 'Not checked-in'}
+												</span>
+											</div>
+										) : null}
+									</>
 								) : (
-									coachRecords.map((record) => (
-										<tr
-											key={`coach-${record.key}`}
-											className="hover:bg-[var(--bg-primary)] transition-colors"
-										>
-											<td className="px-6 py-4 whitespace-nowrap">
-												<div className="flex items-center gap-2">
-													<UserCog className="w-4 h-4 text-[var(--text-secondary)]" />
-													<span className="text-sm font-medium text-[var(--text-primary)]">
-														{record.personName}
-													</span>
-												</div>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap">
-												<div className="text-sm text-[var(--text-primary)]">
-													{record.date}
-												</div>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap">
-												<span className="text-sm text-[var(--text-primary)]">
-													{record.timeIn}
-												</span>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap">
-												<span className="text-sm text-[var(--text-primary)]">
-													{record.timeOut}
-												</span>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap">
-												<span className="text-sm text-[var(--text-secondary)]">
-													{record.logType}
-												</span>
+									<p className="text-xs text-[var(--text-secondary)]">
+										No coach attendance data available for calendar review.
+									</p>
+								)}
+							</div>
+						</div>
+						<div className="overflow-x-auto">
+							<table className="w-full">
+								<thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
+									<tr>
+										<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+											Person
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+											Date
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+											Time In
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+											Time Out
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+											Log Type
+										</th>
+									</tr>
+								</thead>
+								<tbody className="divide-y divide-[var(--border-color)]">
+									{summarizedRecords.length === 0 ? (
+										<tr>
+											<td colSpan={5} className="px-6 py-12 text-center">
+												<p className="text-[var(--text-secondary)]">No attendance records found</p>
 											</td>
 										</tr>
-									))
-								)}
-							</tbody>
-						</table>
-					</div>
+									) : coachRecords.length === 0 ? (
+										<tr>
+											<td colSpan={5} className="px-6 py-8 text-center">
+												<p className="text-[var(--text-secondary)]">
+													No coach records on this page
+												</p>
+											</td>
+										</tr>
+									) : (
+										coachRecords.map((record) => (
+											<tr
+												key={`coach-${record.key}`}
+												className="hover:bg-[var(--bg-primary)] transition-colors"
+											>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<div className="flex items-center gap-2">
+														<UserCog className="w-4 h-4 text-[var(--text-secondary)]" />
+														<span className="text-sm font-medium text-[var(--text-primary)]">
+															{record.personName}
+														</span>
+													</div>
+												</td>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<div className="text-sm text-[var(--text-primary)]">{record.date}</div>
+												</td>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<span className="text-sm text-[var(--text-primary)]">
+														{record.timeIn}
+													</span>
+												</td>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<span className="text-sm text-[var(--text-primary)]">
+														{record.timeOut}
+													</span>
+												</td>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<span className="text-sm text-[var(--text-secondary)]">
+														{record.logType}
+													</span>
+												</td>
+											</tr>
+										))
+									)}
+								</tbody>
+							</table>
+						</div>
 					</div>
 				)}
 
 				{showClientSection && (
 					<div className="bg-[var(--bg-secondary)] rounded-lg overflow-hidden">
-					<div className="px-4 py-3 border-b border-[var(--border-color)] flex items-center gap-2 bg-[var(--bg-primary)]">
-						<User className="w-5 h-5 text-[var(--primary-yellow)] shrink-0" aria-hidden />
-						<h2 className="text-base font-semibold text-[var(--text-primary)]">Clients</h2>
-						<span className="text-sm text-[var(--text-secondary)]">
-							({clientRecords.length} rows on this page)
-						</span>
-					</div>
-					<div className="overflow-x-auto">
-						<table className="w-full">
-							<thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
-								<tr>
-									<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-										Person
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-										Date
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-										Time In
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-										Time Out
-									</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-										Log Type
-									</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-[var(--border-color)]">
-								{summarizedRecords.length === 0 ? (
+						<div className="px-4 py-3 border-b border-[var(--border-color)] flex items-center gap-2 bg-[var(--bg-primary)]">
+							<User className="w-5 h-5 text-[var(--primary-yellow)] shrink-0" aria-hidden />
+							<h2 className="text-base font-semibold text-[var(--text-primary)]">Clients</h2>
+							<span className="text-sm text-[var(--text-secondary)]">
+								({clientRecords.length} rows on this page)
+							</span>
+						</div>
+						<div className="overflow-x-auto">
+							<table className="w-full">
+								<thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
 									<tr>
-										<td colSpan={5} className="px-6 py-12 text-center">
-											<p className="text-[var(--text-secondary)]">No attendance records found</p>
-										</td>
+										<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+											Person
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+											Date
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+											Time In
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+											Time Out
+										</th>
+										<th className="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+											Log Type
+										</th>
 									</tr>
-								) : clientRecords.length === 0 ? (
-									<tr>
-										<td colSpan={5} className="px-6 py-8 text-center">
-											<p className="text-[var(--text-secondary)]">No client records on this page</p>
-										</td>
-									</tr>
-								) : (
-									clientRecords.map((record) => (
-										<tr
-											key={`client-${record.key}`}
-											className="hover:bg-[var(--bg-primary)] transition-colors"
-										>
-											<td className="px-6 py-4 whitespace-nowrap">
-												<div className="flex items-center gap-2">
-													<User className="w-4 h-4 text-[var(--text-secondary)]" />
-													<span className="text-sm font-medium text-[var(--text-primary)]">
-														{record.personName}
-													</span>
-												</div>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap">
-												<div className="text-sm text-[var(--text-primary)]">
-													{record.date}
-												</div>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap">
-												<span className="text-sm text-[var(--text-primary)]">
-													{record.timeIn}
-												</span>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap">
-												<span className="text-sm text-[var(--text-primary)]">
-													{record.timeOut}
-												</span>
-											</td>
-											<td className="px-6 py-4 whitespace-nowrap">
-												<span className="text-sm text-[var(--text-secondary)]">
-													{record.logType}
-												</span>
+								</thead>
+								<tbody className="divide-y divide-[var(--border-color)]">
+									{summarizedRecords.length === 0 ? (
+										<tr>
+											<td colSpan={5} className="px-6 py-12 text-center">
+												<p className="text-[var(--text-secondary)]">No attendance records found</p>
 											</td>
 										</tr>
-									))
-								)}
-							</tbody>
-						</table>
-					</div>
+									) : clientRecords.length === 0 ? (
+										<tr>
+											<td colSpan={5} className="px-6 py-8 text-center">
+												<p className="text-[var(--text-secondary)]">
+													No client records on this page
+												</p>
+											</td>
+										</tr>
+									) : (
+										clientRecords.map((record) => (
+											<tr
+												key={`client-${record.key}`}
+												className="hover:bg-[var(--bg-primary)] transition-colors"
+											>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<div className="flex items-center gap-2">
+														<User className="w-4 h-4 text-[var(--text-secondary)]" />
+														<span className="text-sm font-medium text-[var(--text-primary)]">
+															{record.personName}
+														</span>
+													</div>
+												</td>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<div className="text-sm text-[var(--text-primary)]">{record.date}</div>
+												</td>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<span className="text-sm text-[var(--text-primary)]">
+														{record.timeIn}
+													</span>
+												</td>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<span className="text-sm text-[var(--text-primary)]">
+														{record.timeOut}
+													</span>
+												</td>
+												<td className="px-6 py-4 whitespace-nowrap">
+													<span className="text-sm text-[var(--text-secondary)]">
+														{record.logType}
+													</span>
+												</td>
+											</tr>
+										))
+									)}
+								</tbody>
+							</table>
+						</div>
 					</div>
 				)}
 
@@ -1461,7 +1520,7 @@ export function AttendancePage() {
 				{totalPages > 1 && (
 					<div className="bg-[var(--bg-secondary)] rounded-lg px-6 py-4 border border-[var(--border-color)] flex items-center justify-between">
 						<div className="text-sm text-[var(--text-secondary)]">
-							Showing {((currentPage - 1) * recordsPerPage) + 1} to{' '}
+							Showing {(currentPage - 1) * recordsPerPage + 1} to{' '}
 							{Math.min(currentPage * recordsPerPage, totalCount)} of {totalCount} records
 						</div>
 						<div className="flex gap-2">

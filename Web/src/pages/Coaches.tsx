@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { Button } from '@/components/ui/button';
+import { UiSelect } from '@/components/ui/UiSelect';
 import type { LucideIcon } from 'lucide-react';
 import {
 	Search,
@@ -25,7 +26,15 @@ import {
 } from 'lucide-react';
 import { ExportDownloadDropdown } from '@/components/ExportDownloadDropdown';
 import { AdminCreateSessionModal } from '@/components/AdminCreateSessionModal';
-import { GET_USERS, GET_COACH_SESSIONS, GET_COACH_SESSION_LOGS, DELETE_USER, CREATE_USER, UPDATE_USER, USERS_UPDATED } from '@/graphql/operations/index';
+import {
+	GET_USERS,
+	GET_COACH_SESSIONS,
+	GET_COACH_SESSION_LOGS,
+	DELETE_USER,
+	CREATE_USER,
+	UPDATE_USER,
+	USERS_UPDATED,
+} from '@/graphql/operations/index';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { addToast } from '@/store/slices/uiSlice';
 import type { CreateUserMutation, CreateUserMutationVariables } from '@/graphql/generated/types';
@@ -338,7 +347,6 @@ export function CoachesPage() {
 		},
 	});
 
-
 	const handleView = (coach: Coach) => {
 		setSelectedCoach(coach);
 		setIsViewModalOpen(true);
@@ -589,11 +597,11 @@ export function CoachesPage() {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold flex items-center gap-2">
+					<h1 className="admin-page-title">
 						<UserCog className="w-8 h-8" color="var(--primary-yellow)" />
 						Coach Management
 					</h1>
-					<p className="text-gray-600 dark:text-gray-400 mt-1">
+					<p className="admin-page-subtitle">
 						Manage all gym coaches, view details, and update information ({apiCoaches.length} total)
 					</p>
 				</div>
@@ -602,9 +610,7 @@ export function CoachesPage() {
 					<Button type="button" variant="outline" onClick={() => setIsCreateSessionModalOpen(true)}>
 						Create session
 					</Button>
-					<Button onClick={handleAddCoach}>
-						Add New Coach
-					</Button>
+					<Button onClick={handleAddCoach}>Add New Coach</Button>
 				</div>
 			</div>
 
@@ -620,7 +626,7 @@ export function CoachesPage() {
 							className="w-full pl-10 pr-4 py-2.5 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--primary-yellow)] focus:ring-[3px] focus:ring-[rgba(249,197,19,0.1)]"
 						/>
 					</div>
-					<select
+					<UiSelect
 						value={statusFilter}
 						onChange={(e) => setStatusFilter(e.target.value)}
 						aria-label="Filter coaches by status"
@@ -629,7 +635,7 @@ export function CoachesPage() {
 						<option value="all">All Status</option>
 						<option value="Active">Active</option>
 						<option value="Inactive">Inactive</option>
-					</select>
+					</UiSelect>
 				</div>
 			</div>
 
@@ -1166,7 +1172,9 @@ function SessionLogsCalendarView({
 							)}
 						</>
 					) : (
-						<p className="text-sm text-[var(--text-secondary)] py-4">Select a date on the calendar.</p>
+						<p className="text-sm text-[var(--text-secondary)] py-4">
+							Select a date on the calendar.
+						</p>
 					)}
 				</div>
 			</div>
@@ -1190,7 +1198,7 @@ function CoachViewModal({ coach, onClose }: { coach: Coach; onClose: () => void 
 	// Extract clients from sessions and session logs (they're already populated)
 	const clients = useMemo(() => {
 		const clientMap = new Map<string, any>();
-		
+
 		// Get clients from sessions
 		if (sessionsData?.getCoachSessions) {
 			sessionsData.getCoachSessions.forEach((session: any) => {
@@ -1203,7 +1211,7 @@ function CoachViewModal({ coach, onClose }: { coach: Coach; onClose: () => void 
 				}
 			});
 		}
-		
+
 		// Get clients from session logs
 		if (sessionLogsData?.getCoachSessionLogs) {
 			sessionLogsData.getCoachSessionLogs.forEach((log: any) => {
@@ -1212,7 +1220,7 @@ function CoachViewModal({ coach, onClose }: { coach: Coach; onClose: () => void 
 				}
 			});
 		}
-		
+
 		return Array.from(clientMap.values());
 	}, [sessionsData, sessionLogsData]);
 	const sessions = sessionsData?.getCoachSessions || [];
@@ -1237,7 +1245,11 @@ function CoachViewModal({ coach, onClose }: { coach: Coach; onClose: () => void 
 	};
 
 	return (
-		<div className="modal modal-large" onClick={(e) => e.stopPropagation()} style={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+		<div
+			className="modal modal-large"
+			onClick={(e) => e.stopPropagation()}
+			style={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
+		>
 			<div className="modal-header" style={{ flexShrink: 0 }}>
 				<h3>
 					<Eye className="w-5 h-5" />
@@ -1425,7 +1437,7 @@ function CoachViewModal({ coach, onClose }: { coach: Coach; onClose: () => void 
 											</div>
 											{session.sessionKind === 'group_class' && session.maxParticipants != null && (
 												<div className="text-xs text-[var(--text-secondary)] mb-1">
-													Capacity: {(session.clients?.length ?? session.clientsIds?.length ?? 0)} /{' '}
+													Capacity: {session.clients?.length ?? session.clientsIds?.length ?? 0} /{' '}
 													{session.maxParticipants} enrolled
 												</div>
 											)}
@@ -1487,13 +1499,18 @@ function CoachViewModal({ coach, onClose }: { coach: Coach; onClose: () => void 
 												</div>
 												<ul className="text-xs text-[var(--text-primary)] space-y-1">
 													{session.enrollments.map((en: any) => (
-														<li key={`${en.clientId}-${en.status}`} className="flex justify-between gap-2">
+														<li
+															key={`${en.clientId}-${en.status}`}
+															className="flex justify-between gap-2"
+														>
 															<span>
 																{en.client
 																	? `${en.client.firstName} ${en.client.lastName}`
 																	: en.clientId?.slice(0, 8) + '…'}
 															</span>
-															<span className="text-[var(--text-secondary)] shrink-0">{en.status}</span>
+															<span className="text-[var(--text-secondary)] shrink-0">
+																{en.status}
+															</span>
 														</li>
 													))}
 												</ul>
@@ -1520,7 +1537,9 @@ function CoachViewModal({ coach, onClose }: { coach: Coach; onClose: () => void 
 						Session Logs & Activities ({sessionLogs.length})
 					</h3>
 					{sessionLogsLoading ? (
-						<div className="text-center py-4 text-[var(--text-secondary)]">Loading activities...</div>
+						<div className="text-center py-4 text-[var(--text-secondary)]">
+							Loading activities...
+						</div>
 					) : sessionLogs.length > 0 ? (
 						<SessionLogsCalendarView
 							key={coach.id}
@@ -1528,7 +1547,9 @@ function CoachViewModal({ coach, onClose }: { coach: Coach; onClose: () => void 
 							formatDate={formatDate}
 						/>
 					) : (
-						<div className="text-center py-4 text-[var(--text-secondary)]">No session logs found</div>
+						<div className="text-center py-4 text-[var(--text-secondary)]">
+							No session logs found
+						</div>
 					)}
 				</div>
 			</div>
@@ -1574,9 +1595,7 @@ function RemoveConfirmModal({
 						placeholder="Required for transparency"
 						className="w-full rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] px-3 py-2.5 text-[var(--text-primary)]"
 					/>
-					{reasonError ? (
-						<p className="mt-1 text-xs text-[#F87171]">{reasonError}</p>
-					) : null}
+					{reasonError ? <p className="mt-1 text-xs text-[#F87171]">{reasonError}</p> : null}
 				</div>
 				<div className="modal-delete-actions">
 					<button
@@ -1772,9 +1791,7 @@ function AddCoachModal({
 							border: '2px solid rgba(249, 197, 19, 0.3)',
 							borderRadius: '12px',
 						}}
-					>
-						
-					</div>
+					></div>
 
 					<div className="form-grid">
 						<div className="form-group">
@@ -1831,7 +1848,6 @@ function AddCoachModal({
 									style={{ flex: 1 }}
 									placeholder="name@example.com"
 								/>
-							
 							</div>
 						</div>
 						<div className="form-group">
@@ -1865,12 +1881,12 @@ function AddCoachModal({
 						</div>
 						<div className="form-group">
 							<label htmlFor="gender">Gender</label>
-							<select id="gender" name="gender" value={formData.gender} onChange={handleChange}>
+							<UiSelect id="gender" name="gender" value={formData.gender} onChange={handleChange}>
 								<option value="">Select Gender</option>
 								<option value="Male">Male</option>
 								<option value="Female">Female</option>
 								<option value="Prefer not to say">Prefer not to say</option>
-							</select>
+							</UiSelect>
 						</div>
 						<div className="form-group">
 							<label htmlFor="dateOfBirth">Date of Birth</label>
@@ -1900,10 +1916,10 @@ function AddCoachModal({
 						</div>
 						<div className="form-group">
 							<label htmlFor="status">Status</label>
-							<select id="status" name="status" value={formData.status} onChange={handleChange}>
+							<UiSelect id="status" name="status" value={formData.status} onChange={handleChange}>
 								<option value="Active">Active</option>
 								<option value="Inactive">Inactive</option>
-							</select>
+							</UiSelect>
 						</div>
 						<div className="form-group" style={{ gridColumn: '1 / -1' }}>
 							<label>Teaching Days</label>
@@ -1991,7 +2007,7 @@ function AddCoachModal({
 										Start Time
 									</label>
 									<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-										<select
+										<UiSelect
 											id="teachingTimeStartHour"
 											name="teachingTimeStartHour"
 											value={formData.teachingTimeStartHour}
@@ -2003,9 +2019,9 @@ function AddCoachModal({
 													{hour}
 												</option>
 											))}
-										</select>
+										</UiSelect>
 										<span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>:</span>
-										<select
+										<UiSelect
 											id="teachingTimeStartMinute"
 											name="teachingTimeStartMinute"
 											value={formData.teachingTimeStartMinute}
@@ -2017,8 +2033,8 @@ function AddCoachModal({
 													{minute}
 												</option>
 											))}
-										</select>
-										<select
+										</UiSelect>
+										<UiSelect
 											id="teachingTimeStartPeriod"
 											name="teachingTimeStartPeriod"
 											value={formData.teachingTimeStartPeriod}
@@ -2027,7 +2043,7 @@ function AddCoachModal({
 										>
 											<option value="AM">AM</option>
 											<option value="PM">PM</option>
-										</select>
+										</UiSelect>
 									</div>
 								</div>
 								{/* End Time */}
@@ -2045,7 +2061,7 @@ function AddCoachModal({
 										End Time
 									</label>
 									<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-										<select
+										<UiSelect
 											id="teachingTimeEndHour"
 											name="teachingTimeEndHour"
 											value={formData.teachingTimeEndHour}
@@ -2057,9 +2073,9 @@ function AddCoachModal({
 													{hour}
 												</option>
 											))}
-										</select>
+										</UiSelect>
 										<span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>:</span>
-										<select
+										<UiSelect
 											id="teachingTimeEndMinute"
 											name="teachingTimeEndMinute"
 											value={formData.teachingTimeEndMinute}
@@ -2071,8 +2087,8 @@ function AddCoachModal({
 													{minute}
 												</option>
 											))}
-										</select>
-										<select
+										</UiSelect>
+										<UiSelect
 											id="teachingTimeEndPeriod"
 											name="teachingTimeEndPeriod"
 											value={formData.teachingTimeEndPeriod}
@@ -2081,7 +2097,7 @@ function AddCoachModal({
 										>
 											<option value="AM">AM</option>
 											<option value="PM">PM</option>
-										</select>
+										</UiSelect>
 									</div>
 								</div>
 							</div>
@@ -2398,12 +2414,12 @@ function EditCoachModal({
 						</div>
 						<div className="form-group">
 							<label htmlFor="gender">Gender</label>
-							<select id="gender" name="gender" value={formData.gender} onChange={handleChange}>
+							<UiSelect id="gender" name="gender" value={formData.gender} onChange={handleChange}>
 								<option value="">Select Gender</option>
 								<option value="Male">Male</option>
 								<option value="Female">Female</option>
 								<option value="Prefer not to say">Prefer not to say</option>
-							</select>
+							</UiSelect>
 						</div>
 						<div className="form-group">
 							<label htmlFor="dateOfBirth">Date of Birth</label>
@@ -2433,10 +2449,10 @@ function EditCoachModal({
 						</div>
 						<div className="form-group">
 							<label htmlFor="status">Status</label>
-							<select id="status" name="status" value={formData.status} onChange={handleChange}>
+							<UiSelect id="status" name="status" value={formData.status} onChange={handleChange}>
 								<option value="Active">Active</option>
 								<option value="Inactive">Inactive</option>
-							</select>
+							</UiSelect>
 						</div>
 						<div className="form-group" style={{ gridColumn: '1 / -1' }}>
 							<label>Teaching Days</label>
@@ -2524,7 +2540,7 @@ function EditCoachModal({
 										Start Time
 									</label>
 									<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-										<select
+										<UiSelect
 											id="teachingTimeStartHour"
 											name="teachingTimeStartHour"
 											value={formData.teachingTimeStartHour}
@@ -2536,9 +2552,9 @@ function EditCoachModal({
 													{hour}
 												</option>
 											))}
-										</select>
+										</UiSelect>
 										<span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>:</span>
-										<select
+										<UiSelect
 											id="teachingTimeStartMinute"
 											name="teachingTimeStartMinute"
 											value={formData.teachingTimeStartMinute}
@@ -2550,8 +2566,8 @@ function EditCoachModal({
 													{minute}
 												</option>
 											))}
-										</select>
-										<select
+										</UiSelect>
+										<UiSelect
 											id="teachingTimeStartPeriod"
 											name="teachingTimeStartPeriod"
 											value={formData.teachingTimeStartPeriod}
@@ -2560,7 +2576,7 @@ function EditCoachModal({
 										>
 											<option value="AM">AM</option>
 											<option value="PM">PM</option>
-										</select>
+										</UiSelect>
 									</div>
 								</div>
 								{/* End Time */}
@@ -2578,7 +2594,7 @@ function EditCoachModal({
 										End Time
 									</label>
 									<div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-										<select
+										<UiSelect
 											id="teachingTimeEndHour"
 											name="teachingTimeEndHour"
 											value={formData.teachingTimeEndHour}
@@ -2590,9 +2606,9 @@ function EditCoachModal({
 													{hour}
 												</option>
 											))}
-										</select>
+										</UiSelect>
 										<span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>:</span>
-										<select
+										<UiSelect
 											id="teachingTimeEndMinute"
 											name="teachingTimeEndMinute"
 											value={formData.teachingTimeEndMinute}
@@ -2604,8 +2620,8 @@ function EditCoachModal({
 													{minute}
 												</option>
 											))}
-										</select>
-										<select
+										</UiSelect>
+										<UiSelect
 											id="teachingTimeEndPeriod"
 											name="teachingTimeEndPeriod"
 											value={formData.teachingTimeEndPeriod}
@@ -2614,7 +2630,7 @@ function EditCoachModal({
 										>
 											<option value="AM">AM</option>
 											<option value="PM">PM</option>
-										</select>
+										</UiSelect>
 									</div>
 								</div>
 							</div>
