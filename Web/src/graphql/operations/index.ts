@@ -52,6 +52,8 @@ export {
 	LogReportDownloadDocument as LOG_REPORT_DOWNLOAD,
 	MarkNotificationReadDocument as MARK_NOTIFICATION_READ,
 	MarkAllMyNotificationsReadDocument as MARK_ALL_MY_NOTIFICATIONS_READ,
+	DeleteMyNotificationDocument as DELETE_MY_NOTIFICATION,
+	DeleteAllMyNotificationsDocument as DELETE_ALL_MY_NOTIFICATIONS,
 } from '../generated/graphql';
 
 // Subscriptions
@@ -83,4 +85,3 @@ export {
 	UpdateWalkInPaymentSettingsDocument as UPDATE_WALK_IN_PAYMENT_SETTINGS,
 	GetReportDownloadLogsDocument as GET_REPORT_DOWNLOAD_LOGS,
 } from '../generated/graphql';
-

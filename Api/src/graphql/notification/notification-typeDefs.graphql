@@ -26,4 +26,6 @@ extend type Query {
 extend type Mutation {
 	markNotificationRead(id: ID!): Notification!
 	markAllMyNotificationsRead: Boolean!
+	deleteMyNotification(id: ID!): Boolean!
+	deleteAllMyNotifications: Int!
 }

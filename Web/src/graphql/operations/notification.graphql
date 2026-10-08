@@ -26,3 +26,11 @@ mutation MarkNotificationRead($id: ID!) {
 mutation MarkAllMyNotificationsRead {
 	markAllMyNotificationsRead
 }
+
+mutation DeleteMyNotification($id: ID!) {
+	deleteMyNotification(id: $id)
+}
+
+mutation DeleteAllMyNotifications {
+	deleteAllMyNotifications
+}

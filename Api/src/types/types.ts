@@ -527,10 +527,12 @@ export type Mutation = {
   createSubscriptionRequest: SubscriptionRequest;
   createUser: AuthResponse;
   createWalkInClient: CreateWalkInClientResult;
+  deleteAllMyNotifications: Scalars['Int']['output'];
   deleteCoachRating: Scalars['Boolean']['output'];
   deleteEquipment: Scalars['Boolean']['output'];
   deleteGoal: Scalars['Boolean']['output'];
   deleteMembership: Scalars['Boolean']['output'];
+  deleteMyNotification: Scalars['Boolean']['output'];
   deleteProgressRating: Scalars['Boolean']['output'];
   deleteSubscriptionRequest: Scalars['Boolean']['output'];
   deleteUser?: Maybe<Scalars['Boolean']['output']>;
@@ -699,6 +701,11 @@ export type MutationDeleteGoalArgs = {
 
 
 export type MutationDeleteMembershipArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteMyNotificationArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -2135,10 +2142,12 @@ export type MutationResolvers<ContextType = IAuthContext, ParentType extends Res
   createSubscriptionRequest?: Resolver<ResolversTypes['SubscriptionRequest'], ParentType, ContextType, RequireFields<MutationCreateSubscriptionRequestArgs, 'input'>>;
   createUser?: Resolver<ResolversTypes['AuthResponse'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   createWalkInClient?: Resolver<ResolversTypes['CreateWalkInClientResult'], ParentType, ContextType, RequireFields<MutationCreateWalkInClientArgs, 'input' | 'timeInNow'>>;
+  deleteAllMyNotifications?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   deleteCoachRating?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteCoachRatingArgs, 'id'>>;
   deleteEquipment?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteEquipmentArgs, 'id'>>;
   deleteGoal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteGoalArgs, 'id'>>;
   deleteMembership?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteMembershipArgs, 'id'>>;
+  deleteMyNotification?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteMyNotificationArgs, 'id'>>;
   deleteProgressRating?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteProgressRatingArgs, 'id'>>;
   deleteSubscriptionRequest?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteSubscriptionRequestArgs, 'id'>>;
   deleteUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationDeleteUserArgs, 'id'>>;

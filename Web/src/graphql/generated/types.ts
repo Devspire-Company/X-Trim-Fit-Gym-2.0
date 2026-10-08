@@ -524,10 +524,12 @@ export type Mutation = {
   createSubscriptionRequest: SubscriptionRequest;
   createUser: AuthResponse;
   createWalkInClient: CreateWalkInClientResult;
+  deleteAllMyNotifications: Scalars['Int']['output'];
   deleteCoachRating: Scalars['Boolean']['output'];
   deleteEquipment: Scalars['Boolean']['output'];
   deleteGoal: Scalars['Boolean']['output'];
   deleteMembership: Scalars['Boolean']['output'];
+  deleteMyNotification: Scalars['Boolean']['output'];
   deleteProgressRating: Scalars['Boolean']['output'];
   deleteSubscriptionRequest: Scalars['Boolean']['output'];
   deleteUser?: Maybe<Scalars['Boolean']['output']>;
@@ -696,6 +698,11 @@ export type MutationDeleteGoalArgs = {
 
 
 export type MutationDeleteMembershipArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteMyNotificationArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -1859,6 +1866,18 @@ export type MarkAllMyNotificationsReadMutationVariables = Exact<{ [key: string]:
 
 
 export type MarkAllMyNotificationsReadMutation = { __typename?: 'Mutation', markAllMyNotificationsRead: boolean };
+
+export type DeleteMyNotificationMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteMyNotificationMutation = { __typename?: 'Mutation', deleteMyNotification: boolean };
+
+export type DeleteAllMyNotificationsMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DeleteAllMyNotificationsMutation = { __typename?: 'Mutation', deleteAllMyNotifications: number };
 
 export type GetCoachSessionsQueryVariables = Exact<{
   coachId: Scalars['ID']['input'];

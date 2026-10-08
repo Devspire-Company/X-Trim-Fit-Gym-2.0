@@ -14,7 +14,6 @@ import {
 	PieChart,
 	UserRound,
 	Zap,
-	ArrowUpRight,
 } from 'lucide-react';
 import {
 	GET_USERS,
@@ -514,9 +513,6 @@ export function DashboardPage() {
 				<div className="welcome-bg-image"></div>
 				<div className="welcome-content">
 					<div className="welcome-copy">
-						<div className="welcome-kicker">
-							<span>01</span> Command floor
-						</div>
 						<h1>
 							Welcome back.
 							<br />
@@ -526,17 +522,12 @@ export function DashboardPage() {
 							Manage your gym operations, members, coaches, and track your business performance.
 						</p>
 					</div>
-					<div className="welcome-mark" aria-hidden="true">
-						<span>X</span>
-						<small>Train / Track / Transform</small>
-					</div>
 				</div>
 			</div>
 
 			{/* Stats Grid */}
 			<div className="dashboard-stat-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 				<StatCard
-					index="01"
 					icon={PhilippinePeso}
 					title="Total revenue"
 					value={`₱${monthlyRevenue.toLocaleString()}`}
@@ -544,7 +535,6 @@ export function DashboardPage() {
 					changeType="positive"
 				/>
 				<StatCard
-					index="02"
 					icon={UserCog}
 					title="Total Coaches"
 					value={totalCoaches}
@@ -552,7 +542,6 @@ export function DashboardPage() {
 					changeType="neutral"
 				/>
 				<StatCard
-					index="03"
 					icon={Users}
 					title="Total Members"
 					value={totalMembers}
@@ -560,7 +549,6 @@ export function DashboardPage() {
 					changeType="positive"
 				/>
 				<StatCard
-					index="04"
 					icon={UserRound}
 					title="Total walk-ins"
 					value={totalWalkInTimeIns}
@@ -572,7 +560,6 @@ export function DashboardPage() {
 					changeType="positive"
 				/>
 				<StatCard
-					index="05"
 					icon={CreditCard}
 					title="Active Subscriptions"
 					value={activeSubscriptions}
@@ -692,7 +679,7 @@ export function DashboardPage() {
 						to="/attendance"
 						className="view-all text-sm text-[var(--primary-yellow)] font-medium flex items-center gap-1"
 					>
-						View All <span>→</span>
+						View All
 					</Link>
 				</div>
 				{attendanceLoading ? (
@@ -774,7 +761,7 @@ export function DashboardPage() {
 							to="/members"
 							className="view-all text-sm text-[var(--primary-yellow)] font-medium flex items-center gap-1"
 						>
-							View All <span>→</span>
+							View All
 						</Link>
 					</div>
 					<div className="space-y-4">
@@ -811,7 +798,7 @@ export function DashboardPage() {
 							to="/coaches"
 							className="view-all text-sm text-[var(--primary-yellow)] font-medium flex items-center gap-1"
 						>
-							View All <span>→</span>
+							View All
 						</Link>
 					</div>
 					<div className="space-y-4">
@@ -887,14 +874,12 @@ export function DashboardPage() {
 }
 
 function StatCard({
-	index,
 	icon: Icon,
 	title,
 	value,
 	change,
 	changeType,
 }: {
-	index: string;
 	icon: typeof Users;
 	title: string;
 	value: string | number;
@@ -904,7 +889,6 @@ function StatCard({
 	return (
 		<div className="stat-card">
 			<div className="stat-card-head">
-				<span className="stat-index">{index}</span>
 				<div className="stat-icon">
 					<Icon className="w-6 h-6" />
 				</div>
@@ -941,7 +925,6 @@ function QuickActionButton({
 				<Icon className="w-5 h-5" />
 			</span>
 			<span>{label}</span>
-			<ArrowUpRight className="quick-action-arrow" />
 		</Link>
 	);
 }

@@ -40,10 +40,11 @@ export function AdminLayout() {
 	const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 	const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 	const [sidebarExpanded, setSidebarExpanded] = useState(false);
-	const [expandedSidebarWidth, setExpandedSidebarWidth] = useState(268); // Default width
+	const [expandedSidebarWidth, setExpandedSidebarWidth] = useState(238); // Compact expanded width
 	const sidebarRef = useRef<HTMLElement>(null);
 	const navigate = useNavigate();
 	const { signOut } = useClerk();
+	const isSettingsRoute = location.pathname.startsWith('/settings');
 
 	const handleLogout = async () => {
 		await signOut();
@@ -58,7 +59,7 @@ export function AdminLayout() {
 		const tempElement = document.createElement('span');
 		tempElement.style.visibility = 'hidden';
 		tempElement.style.position = 'absolute';
-		tempElement.style.fontSize = '14px';
+		tempElement.style.fontSize = '12px';
 		tempElement.style.fontWeight = '500';
 		tempElement.style.fontFamily =
 			'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
@@ -81,13 +82,12 @@ export function AdminLayout() {
 		// Calculate total width: icon (20px) + gap (12px) + text width + padding (48px total) + extra space (24px)
 		const iconWidth = 20; // w-5 icon = 20px
 		const gap = 12; // gap between icon and text
-		const padding = 48; // 1.2rem left + 1.2rem right = 24px each = 48px total
-		const extraSpace = 24; // buffer for safety and spacing
+		const padding = 34;
+		const extraSpace = 16;
 
 		const calculatedWidth = iconWidth + gap + maxWidth + padding + extraSpace;
 
-		// Set width with minimum of 240px and round up to nearest 10 for clean numbers
-		setExpandedSidebarWidth(Math.max(240, Math.ceil(calculatedWidth / 10) * 10));
+		setExpandedSidebarWidth(Math.max(228, Math.ceil(calculatedWidth / 10) * 10));
 	}, []);
 
 	const isActive = (path: string) => location.pathname === path;
@@ -119,10 +119,14 @@ export function AdminLayout() {
 
 	return (
 		<div
-			className={`admin-shell min-h-screen ${sidebarExpanded ? 'sidebar-expanded' : ''}`}
+			className={`admin-shell min-h-screen ${sidebarExpanded && !isSettingsRoute ? 'sidebar-expanded' : ''} ${isSettingsRoute ? 'settings-view' : ''}`}
 			style={
 				{
-					'--sidebar-width': sidebarExpanded ? `${expandedSidebarWidth}px` : '76px',
+					'--sidebar-width': isSettingsRoute
+						? '0px'
+						: sidebarExpanded
+							? `${expandedSidebarWidth}px`
+							: '64px',
 					'--sidebar-expanded-width': `${expandedSidebarWidth}px`,
 				} as React.CSSProperties
 			}
@@ -137,7 +141,6 @@ export function AdminLayout() {
 							className="h-full w-auto object-contain cursor-pointer"
 							onClick={() => navigate('/dashboard')}
 						/>
-						<span className="brand-division hidden sm:block">Operations</span>
 					</div>
 					<div className="nav-right flex items-center gap-4">
 						<SystemNotificationBell />
@@ -187,34 +190,36 @@ export function AdminLayout() {
 			</nav>
 
 			{/* Sidebar */}
-			<aside
-				ref={sidebarRef}
-				className={`sidebar ${sidebarExpanded ? 'expanded' : ''}`}
-				style={
-					{
-						width: sidebarExpanded ? `${expandedSidebarWidth}px` : '76px',
-					} as React.CSSProperties
-				}
-			>
-				<nav>
-					<ul className="sidebar-menu">
-						{navItems.map((item) => {
-							const Icon = item.icon;
-							return (
-								<li key={item.path}>
-									<Link
-										to={item.path}
-										className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
-									>
-										<Icon className="w-5 h-5" />
-										<span>{item.label}</span>
-									</Link>
-								</li>
-							);
-						})}
-					</ul>
-				</nav>
-			</aside>
+			{!isSettingsRoute && (
+				<aside
+					ref={sidebarRef}
+					className={`sidebar ${sidebarExpanded ? 'expanded' : ''}`}
+					style={
+						{
+							width: sidebarExpanded ? `${expandedSidebarWidth}px` : '64px',
+						} as React.CSSProperties
+					}
+				>
+					<nav>
+						<ul className="sidebar-menu">
+							{navItems.map((item) => {
+								const Icon = item.icon;
+								return (
+									<li key={item.path}>
+										<Link
+											to={item.path}
+											className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
+										>
+											<Icon className="w-5 h-5" />
+											<span>{item.label}</span>
+										</Link>
+									</li>
+								);
+							})}
+						</ul>
+					</nav>
+				</aside>
+			)}
 
 			{/* Main Content */}
 			<main className="main-content">
