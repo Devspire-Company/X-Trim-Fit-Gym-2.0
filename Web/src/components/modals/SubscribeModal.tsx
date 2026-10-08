@@ -25,7 +25,11 @@ export function SubscribeModal({
 			const days = membership.monthDuration >= 1 ? membership.monthDuration : 1;
 			const endDate = new Date(today);
 			endDate.setDate(endDate.getDate() + days);
-			return endDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+			return endDate.toLocaleDateString('en-US', {
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric',
+			});
 		}
 		let months = membership.monthDuration >= 1 ? membership.monthDuration : 1;
 		if (membership.durationType === DurationType.Quarterly) months = 3;
@@ -44,10 +48,10 @@ export function SubscribeModal({
 						<div
 							className="modal-success-icon-large"
 							style={{
-								background: 'linear-gradient(135deg, var(--primary-red), var(--primary-yellow))',
+								background: 'var(--primary-yellow)',
 							}}
 						>
-							<CreditCard size={48} style={{ color: 'white' }} />
+							<CreditCard size={48} style={{ color: '#090b0d' }} />
 						</div>
 					</div>
 
@@ -55,10 +59,7 @@ export function SubscribeModal({
 						Subscribe to {membership.name}
 					</h2>
 
-					<p
-						className="modal-text"
-						style={{ textAlign: 'center', marginBottom: '2rem' }}
-					>
+					<p className="modal-text" style={{ textAlign: 'center', marginBottom: '2rem' }}>
 						Confirm your subscription to this membership plan
 					</p>
 
@@ -125,4 +126,3 @@ export function SubscribeModal({
 		</div>
 	);
 }
-

@@ -3,7 +3,10 @@ import { useQuery, useMutation, useSubscription } from '@apollo/client';
 import { Button } from '@/components/ui/button';
 import { Plus, Eye, Edit, Trash2, CreditCard, Crown, Check } from 'lucide-react';
 import { ExportDownloadDropdown } from '@/components/ExportDownloadDropdown';
-import { MembershipFormModal, type MembershipFormData } from '@/components/modals/MembershipFormModal';
+import {
+	MembershipFormModal,
+	type MembershipFormData,
+} from '@/components/modals/MembershipFormModal';
 import { MembershipViewModal } from '@/components/modals/MembershipViewModal';
 import { DeleteConfirmModal } from '@/components/modals/DeleteConfirmModal';
 import { SuccessModal } from '@/components/modals/SuccessModal';
@@ -141,18 +144,18 @@ export function MembershipsPage() {
 	const handleFormSubmit = (formData: MembershipFormData) => {
 		// Map status from form format to API format
 		const statusMap: Record<string, MembershipStatus> = {
-			'Active': MembershipStatus.Active,
-			'Inactive': MembershipStatus.Inactive,
+			Active: MembershipStatus.Active,
+			Inactive: MembershipStatus.Inactive,
 			'Coming Soon': MembershipStatus.ComingSoon,
 		};
 
 		// Map durationType from form format to API format
 		const durationMap: Record<string, DurationType> = {
-			'Monthly': DurationType.Monthly,
-			'Quarterly': DurationType.Quarterly,
-			'Yearly': DurationType.Yearly,
-			'Daily': DurationType.Daily,
-			'Minutes': 'MINUTES' as DurationType,
+			Monthly: DurationType.Monthly,
+			Quarterly: DurationType.Quarterly,
+			Yearly: DurationType.Yearly,
+			Daily: DurationType.Daily,
+			Minutes: 'MINUTES' as DurationType,
 		};
 
 		const status = statusMap[formData.status] ?? MembershipStatus.Active;
@@ -228,18 +231,27 @@ export function MembershipsPage() {
 			<div className="flex items-center justify-center min-h-[400px]">
 				<div className="text-center">
 					<div className="text-red-500 mb-4">
-						<svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+						<svg
+							className="w-16 h-16 mx-auto"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
 						</svg>
 					</div>
-					<h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Unable to Load Membership Plans</h2>
+					<h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">
+						Unable to Load Membership Plans
+					</h2>
 					<p className="text-[var(--text-secondary)] mb-4">
 						{error?.message || 'Failed to connect to the server'}
 					</p>
-					<button 
-						onClick={() => window.location.reload()} 
-						className="btn-primary"
-					>
+					<button onClick={() => window.location.reload()} className="btn-primary">
 						Retry
 					</button>
 				</div>
@@ -259,7 +271,8 @@ export function MembershipsPage() {
 		})}`;
 	};
 	const getCardStatusEffectiveLabel = (plan: Membership) => {
-		const effectiveIso = (plan as Membership & { statusEffectiveAt?: string | null }).statusEffectiveAt;
+		const effectiveIso = (plan as Membership & { statusEffectiveAt?: string | null })
+			.statusEffectiveAt;
 		if (plan.status === 'ACTIVE') return null;
 		return formatStatusEffectiveDate(effectiveIso);
 	};
@@ -280,11 +293,21 @@ export function MembershipsPage() {
 				user: currentUser,
 				filterSummary: 'tab=active',
 				subtitle: `Total active plans: ${plans.length}`,
-				head: ['Plan Name', 'Status', 'Status Effective', 'Price', 'Duration', 'Description', 'Features'],
+				head: [
+					'Plan Name',
+					'Status',
+					'Status Effective',
+					'Price',
+					'Duration',
+					'Description',
+					'Features',
+				],
 				rows: plans.map((plan) => [
 					plan.name,
 					plan.status,
-					formatStatusEffectiveDate((plan as Membership & { statusEffectiveAt?: string | null }).statusEffectiveAt),
+					formatStatusEffectiveDate(
+						(plan as Membership & { statusEffectiveAt?: string | null }).statusEffectiveAt
+					),
 					`PHP ${Number(plan.monthlyPrice || 0).toLocaleString()}`,
 					durationMap[plan.durationType] || plan.durationType || '-',
 					plan.description || '-',
@@ -320,11 +343,21 @@ export function MembershipsPage() {
 				reportType: 'MEMBERSHIP_MANAGEMENT',
 				user: currentUser,
 				filterSummary: 'tab=active;format=csv',
-				head: ['Plan Name', 'Status', 'Status Effective', 'Price', 'Duration', 'Description', 'Features'],
+				head: [
+					'Plan Name',
+					'Status',
+					'Status Effective',
+					'Price',
+					'Duration',
+					'Description',
+					'Features',
+				],
 				rows: plans.map((plan) => [
 					plan.name,
 					plan.status,
-					formatStatusEffectiveDate((plan as Membership & { statusEffectiveAt?: string | null }).statusEffectiveAt),
+					formatStatusEffectiveDate(
+						(plan as Membership & { statusEffectiveAt?: string | null }).statusEffectiveAt
+					),
 					`PHP ${Number(plan.monthlyPrice || 0).toLocaleString()}`,
 					durationMap[plan.durationType] || plan.durationType || '-',
 					plan.description || '-',
@@ -376,7 +409,7 @@ export function MembershipsPage() {
 				</div>
 			</div>
 
-			<div className="inline-flex items-center rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] p-1">
+			<div className="segmented-control inline-flex items-center">
 				<button
 					type="button"
 					onClick={() => setActiveTab('active')}
@@ -404,107 +437,113 @@ export function MembershipsPage() {
 			{activeTab === 'active' ? (
 				<div className="plans-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 					{plans.map((plan) => {
-					const isFeatured = plan.name.includes('PROMO');
-					const statusMap: Record<string, string> = {
-						ACTIVE: 'Active',
-						INACTIVE: 'Inactive',
-						COMING_SOON: 'Coming Soon',
-					};
+						const isFeatured = plan.name.includes('PROMO');
+						const statusMap: Record<string, string> = {
+							ACTIVE: 'Active',
+							INACTIVE: 'Inactive',
+							COMING_SOON: 'Coming Soon',
+						};
 
-					return (
-						<div
-							key={plan.id}
-							className={`plan-card flex h-full min-h-[34rem] flex-col bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[20px] p-8 backdrop-blur-md ${
-								isFeatured
-									? 'featured border-2 border-[var(--primary-yellow)] shadow-[0_0_30px_rgba(249,197,19,0.2)]'
-									: ''
-							}`}
-						>
-							<div className="plan-header flex items-start justify-between mb-6">
-								<div className="plan-name-section flex-1">
-									{isFeatured && (
-										<span className="plan-badge inline-flex items-center gap-2 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider mb-3 bg-[rgba(249,197,19,0.15)] text-[var(--primary-yellow)] border border-[rgba(249,197,19,0.3)]">
-											<Crown className="w-3 h-3" />
-											Popular
+						return (
+							<div
+								key={plan.id}
+								className={`plan-card flex h-full min-h-[34rem] flex-col bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[20px] p-8 backdrop-blur-md ${
+									isFeatured
+										? 'featured border-2 border-[var(--primary-yellow)] shadow-[0_0_30px_rgba(249,197,19,0.2)]'
+										: ''
+								}`}
+							>
+								<div className="plan-header flex items-start justify-between mb-6">
+									<div className="plan-name-section flex-1">
+										{isFeatured && (
+											<span className="plan-badge inline-flex items-center gap-2 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider mb-3 bg-[rgba(249,197,19,0.15)] text-[var(--primary-yellow)] border border-[rgba(249,197,19,0.3)]">
+												<Crown className="w-3 h-3" />
+												Popular
+											</span>
+										)}
+										<h3 className="plan-name text-[1.75rem] font-bold text-[var(--text-primary)] mb-2 font-['Poppins']">
+											{plan.name}
+										</h3>
+									</div>
+									<div className="flex flex-col items-end">
+										<span
+											className={`plan-status-badge px-2.5 py-1.5 text-xs rounded-lg font-semibold ${
+												plan.status === 'ACTIVE'
+													? 'active bg-[rgba(16,185,129,0.15)] text-[#10B981] border border-[rgba(16,185,129,0.3)]'
+													: 'inactive bg-[rgba(107,114,128,0.15)] text-[#9CA3AF] border border-[rgba(107,114,128,0.3)]'
+											}`}
+										>
+											{statusMap[plan.status] || plan.status}
 										</span>
-									)}
-									<h3 className="plan-name text-[1.75rem] font-bold text-[var(--text-primary)] mb-2 font-['Poppins']">
-										{plan.name}
-									</h3>
+										{getCardStatusEffectiveLabel(plan) ? (
+											<p className="mt-1 text-[11px] font-medium text-[rgba(184,188,200,0.78)]">
+												{getCardStatusEffectiveLabel(plan)}
+											</p>
+										) : null}
+									</div>
 								</div>
-								<div className="flex flex-col items-end">
-									<span
-										className={`plan-status-badge px-2.5 py-1.5 text-xs rounded-lg font-semibold ${
-											plan.status === 'ACTIVE'
-												? 'active bg-[rgba(16,185,129,0.15)] text-[#10B981] border border-[rgba(16,185,129,0.3)]'
-												: 'inactive bg-[rgba(107,114,128,0.15)] text-[#9CA3AF] border border-[rgba(107,114,128,0.3)]'
-										}`}
-									>
-										{statusMap[plan.status] || plan.status}
+								<div className="plan-price flex items-baseline gap-2 mb-4">
+									<span className="plan-price-value text-[2.5rem] font-bold text-[var(--primary-yellow)] font-['Inter',ui-sans-serif,system-ui,sans-serif]">
+										<span className="mr-1.5 text-[1.2em] font-extrabold leading-none">₱</span>
+										{plan.monthlyPrice.toLocaleString()}
 									</span>
-									{getCardStatusEffectiveLabel(plan) ? (
-										<p className="mt-1 text-[11px] font-medium text-[rgba(184,188,200,0.78)]">
-											{getCardStatusEffectiveLabel(plan)}
-										</p>
-									) : null}
+									<span className="plan-price-period text-base text-[var(--text-secondary)] font-medium">
+										/{durationMap[plan.durationType] || 'month'}
+									</span>
+								</div>
+								<p className="plan-description text-sm text-[var(--text-secondary)] mb-6 leading-relaxed">
+									{plan.description}
+								</p>
+								<ul className="plan-features space-y-3 mb-6">
+									{plan.features?.map((feature, idx) => (
+										<li
+											key={idx}
+											className="flex items-center gap-3 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] px-4 py-3 text-sm text-[var(--text-secondary)]"
+										>
+											<Check
+												className="text-[var(--primary-yellow)] w-4 h-4 flex-shrink-0"
+												aria-hidden
+												strokeWidth={3}
+											/>
+											<span>{feature}</span>
+										</li>
+									))}
+								</ul>
+								<div className="plan-actions mt-auto flex gap-3 pt-2">
+									<button
+										onClick={() => {
+											setSelectedPlan(plan);
+											setIsViewModalOpen(true);
+										}}
+										className="btn-small btn-view flex-1 px-4 py-2 rounded-lg text-xs font-semibold bg-[rgba(59,130,246,0.15)] text-[#3B82F6] border border-[rgba(59,130,246,0.3)] flex items-center justify-center gap-2"
+									>
+										<Eye className="w-4 h-4" />
+										View
+									</button>
+									<button
+										onClick={() => handleEditPlan(plan)}
+										className="btn-small btn-edit flex-1 px-4 py-2 rounded-lg text-xs font-semibold bg-[rgba(249,197,19,0.15)] text-[var(--primary-yellow)] border border-[rgba(249,197,19,0.3)] flex items-center justify-center gap-2"
+									>
+										<Edit className="w-4 h-4" />
+										Edit
+									</button>
+									<button
+										onClick={() => handleDeletePlan(plan)}
+										className="btn-small btn-delete flex-1 px-4 py-2 rounded-lg text-xs font-semibold bg-[rgba(239,68,68,0.15)] text-[#EF4444] border border-[rgba(239,68,68,0.3)] flex items-center justify-center gap-2"
+									>
+										<Trash2 className="w-4 h-4" />
+										Remove
+									</button>
 								</div>
 							</div>
-							<div className="plan-price flex items-baseline gap-2 mb-4">
-								<span className="plan-price-value text-[2.5rem] font-bold text-[var(--primary-yellow)] font-['Inter',ui-sans-serif,system-ui,sans-serif]">
-									<span className="mr-1.5 text-[1.2em] font-extrabold leading-none">₱</span>
-									{plan.monthlyPrice.toLocaleString()}
-								</span>
-								<span className="plan-price-period text-base text-[var(--text-secondary)] font-medium">
-									/{durationMap[plan.durationType] || 'month'}
-								</span>
-							</div>
-							<p className="plan-description text-sm text-[var(--text-secondary)] mb-6 leading-relaxed">
-								{plan.description}
-							</p>
-							<ul className="plan-features space-y-3 mb-6">
-								{plan.features?.map((feature, idx) => (
-									<li
-										key={idx}
-										className="flex items-center gap-3 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] px-4 py-3 text-sm text-[var(--text-secondary)]"
-									>
-										<Check className="text-[var(--primary-yellow)] w-4 h-4 flex-shrink-0" aria-hidden strokeWidth={3} />
-										<span>{feature}</span>
-									</li>
-								))}
-							</ul>
-							<div className="plan-actions mt-auto flex gap-3 pt-2">
-								<button
-									onClick={() => {
-										setSelectedPlan(plan);
-										setIsViewModalOpen(true);
-									}}
-									className="btn-small btn-view flex-1 px-4 py-2 rounded-lg text-xs font-semibold bg-[rgba(59,130,246,0.15)] text-[#3B82F6] border border-[rgba(59,130,246,0.3)] flex items-center justify-center gap-2"
-								>
-									<Eye className="w-4 h-4" />
-									View
-								</button>
-								<button
-									onClick={() => handleEditPlan(plan)}
-									className="btn-small btn-edit flex-1 px-4 py-2 rounded-lg text-xs font-semibold bg-[rgba(249,197,19,0.15)] text-[var(--primary-yellow)] border border-[rgba(249,197,19,0.3)] flex items-center justify-center gap-2"
-								>
-									<Edit className="w-4 h-4" />
-									Edit
-								</button>
-								<button
-									onClick={() => handleDeletePlan(plan)}
-									className="btn-small btn-delete flex-1 px-4 py-2 rounded-lg text-xs font-semibold bg-[rgba(239,68,68,0.15)] text-[#EF4444] border border-[rgba(239,68,68,0.3)] flex items-center justify-center gap-2"
-								>
-									<Trash2 className="w-4 h-4" />
-									Remove
-								</button>
-							</div>
-						</div>
-					);
+						);
 					})}
 				</div>
 			) : (
 				<div className="rounded-2xl border border-[var(--card-border)] bg-[var(--card-bg)] p-5">
-					<h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">Removed Plans History</h2>
+					<h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">
+						Removed Plans History
+					</h2>
 					{removedPlans.length === 0 ? (
 						<p className="rounded-xl border border-dashed border-[var(--card-border)] px-4 py-8 text-center text-sm text-[var(--text-secondary)]">
 							No removed plans yet.
@@ -542,9 +581,7 @@ export function MembershipsPage() {
 											<td className="max-w-[24rem] px-3 py-3 text-[var(--text-primary)]">
 												{log.reason}
 											</td>
-											<td className="px-3 py-3 text-[var(--text-secondary)]">
-												{log.removedBy}
-											</td>
+											<td className="px-3 py-3 text-[var(--text-secondary)]">{log.removedBy}</td>
 										</tr>
 									))}
 								</tbody>

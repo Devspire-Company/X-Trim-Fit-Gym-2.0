@@ -38,10 +38,7 @@ import { AdjustSubscriptionDurationModal } from '@/components/modals/AdjustSubsc
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { exportTableCsv } from '@/lib/csvExport';
 import { exportTablePdf } from '@/lib/pdfExport';
-import {
-	isMembershipExpiredForNotification,
-	memberDisplayName,
-} from '@/lib/membershipExpiry';
+import { isMembershipExpiredForNotification, memberDisplayName } from '@/lib/membershipExpiry';
 
 interface Member {
 	id: string;
@@ -133,9 +130,7 @@ export function MembersPage() {
 		currentStartedAtIso?: string;
 	} | null>(null);
 	const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-	const [expiredMemberModalName, setExpiredMemberModalName] = useState<string | null>(
-		null
-	);
+	const [expiredMemberModalName, setExpiredMemberModalName] = useState<string | null>(null);
 	const [nowMs, setNowMs] = useState(() => Date.now());
 	const [pausedMarkersByMemberId, setPausedMarkersByMemberId] = useState<Record<string, number>>(
 		() => {
@@ -246,9 +241,7 @@ export function MembersPage() {
 				// Case 2: Current tx disappeared, but previous snapshot had active tx that is already past expiry.
 				if (!tx && previousTx) {
 					const prevStatus = String(previousTx.status || '').toUpperCase();
-					const prevExpMs = previousTx.expiresAt
-						? new Date(previousTx.expiresAt).getTime()
-						: NaN;
+					const prevExpMs = previousTx.expiresAt ? new Date(previousTx.expiresAt).getTime() : NaN;
 					const prevAlreadyExpired = Number.isFinite(prevExpMs) && prevExpMs <= Date.now();
 					if ((prevStatus === 'ACTIVE' && prevAlreadyExpired) || prevStatus === 'EXPIRED') {
 						if (!next[id]) next[id] = Date.now();
@@ -305,7 +298,9 @@ export function MembersPage() {
 	}, [membersData, loading]);
 
 	const [disableUserMutation] = useMutation(DISABLE_USER, {
-		refetchQueries: [{ query: GET_USERS, variables: { role: RoleType.Member, includeDisabled: true } }],
+		refetchQueries: [
+			{ query: GET_USERS, variables: { role: RoleType.Member, includeDisabled: true } },
+		],
 		onCompleted: () => {
 			dispatch(
 				addToast({
@@ -325,7 +320,9 @@ export function MembersPage() {
 		},
 	});
 	const [enableUserMutation] = useMutation(ENABLE_USER, {
-		refetchQueries: [{ query: GET_USERS, variables: { role: RoleType.Member, includeDisabled: true } }],
+		refetchQueries: [
+			{ query: GET_USERS, variables: { role: RoleType.Member, includeDisabled: true } },
+		],
 		onCompleted: () => {
 			dispatch(addToast({ type: 'success', message: 'Member enabled successfully' }));
 		},
@@ -358,21 +355,20 @@ export function MembersPage() {
 	});
 
 	const [renewMembershipMutation, { loading: isRenewing }] = useMutation(DIRECT_SUBSCRIBE_MEMBER, {
-		refetchQueries: [
-			{ query: GET_USERS, variables: { role: 'member' } },
-		],
+		refetchQueries: [{ query: GET_USERS, variables: { role: 'member' } }],
 		awaitRefetchQueries: true, // Wait for refetch to complete before showing success
 		onCompleted: (data) => {
-			const membershipName = data.directSubscribeMember.membership?.name || memberToRenew?.membershipName || 'the plan';
+			const membershipName =
+				data.directSubscribeMember.membership?.name || memberToRenew?.membershipName || 'the plan';
 			const expiresAt = data.directSubscribeMember.expiresAt;
-			const expirationDate = expiresAt 
-				? new Date(expiresAt).toLocaleDateString('en-US', { 
-					month: 'short', 
-					day: 'numeric', 
-					year: 'numeric' 
-				})
+			const expirationDate = expiresAt
+				? new Date(expiresAt).toLocaleDateString('en-US', {
+						month: 'short',
+						day: 'numeric',
+						year: 'numeric',
+					})
 				: null;
-			
+
 			dispatch(
 				addToast({
 					type: 'success',
@@ -396,7 +392,7 @@ export function MembersPage() {
 	// Helper function to safely extract ID from various formats
 	const extractId = (value: any): string | undefined => {
 		if (!value) return undefined;
-		
+
 		// If it's already a string and not "[object Object]", return it
 		if (typeof value === 'string') {
 			if (value === '[object Object]' || value === 'undefined' || value === 'null') {
@@ -430,7 +426,7 @@ export function MembersPage() {
 				return extractId(value[0]);
 			}
 		}
-		
+
 		// Last resort: try to convert to string, but check if it's valid
 		const str = String(value);
 		if (str === '[object Object]' || str === 'undefined' || str === 'null') {
@@ -439,13 +435,11 @@ export function MembersPage() {
 		return str;
 	};
 
-
 	// Transform API data
 	const apiMembers: Member[] = membersData.map((m: any) => {
-		const hasPendingRequest =
-			(pendingData?.getPendingSubscriptionRequests || []).some(
-				(req: any) => req.memberId === m.id
-			);
+		const hasPendingRequest = (pendingData?.getPendingSubscriptionRequests || []).some(
+			(req: any) => req.memberId === m.id
+		);
 		// Check both currentMembership and membershipTransaction for subscription info
 		const membershipTransaction = m.currentMembership || m.membershipDetails?.membershipTransaction;
 		const membership = membershipTransaction?.membership?.name || 'No Plan';
@@ -463,9 +457,12 @@ export function MembersPage() {
 		const durationType =
 			membershipTransaction?.membership?.durationType || membershipTransaction?.durationType;
 		const startDate =
-			membershipTransaction?.startedAt || membershipTransaction?.startDate || membershipTransaction?.createdAt || m.createdAt;
+			membershipTransaction?.startedAt ||
+			membershipTransaction?.startDate ||
+			membershipTransaction?.createdAt ||
+			m.createdAt;
 		const expiresAt = membershipTransaction?.expiresAt || membershipTransaction?.endDate;
-		
+
 		// Format expiration date for display
 		const formatExpirationDate = (dateString: string | undefined): string | undefined => {
 			if (!dateString) return undefined;
@@ -473,16 +470,16 @@ export function MembersPage() {
 				const date = new Date(dateString);
 				if (isNaN(date.getTime())) return undefined;
 				// Format as "Jan 15, 2025"
-				return date.toLocaleDateString('en-US', { 
-					month: 'short', 
-					day: 'numeric', 
-					year: 'numeric' 
+				return date.toLocaleDateString('en-US', {
+					month: 'short',
+					day: 'numeric',
+					year: 'numeric',
 				});
 			} catch {
 				return undefined;
 			}
 		};
-		
+
 		const expirationDate = formatExpirationDate(expiresAt);
 
 		const txDayDur = membershipTransaction?.dayDuration as number | undefined | null;
@@ -506,7 +503,7 @@ export function MembersPage() {
 				/* ignore */
 			}
 		}
-		
+
 		// Calculate days until expiration for color coding
 		const getDaysUntilExpiration = (dateString: string | undefined): number | null => {
 			if (!dateString) return null;
@@ -520,7 +517,7 @@ export function MembersPage() {
 				return null;
 			}
 		};
-		
+
 		void getDaysUntilExpiration(expiresAt);
 
 		// Extract membership ID - try multiple sources
@@ -531,7 +528,11 @@ export function MembersPage() {
 			if (rawMembershipId !== undefined && rawMembershipId !== null) {
 				// Check if it's already a valid string (and not "[object Object]")
 				if (typeof rawMembershipId === 'string') {
-					if (rawMembershipId !== '[object Object]' && rawMembershipId !== 'undefined' && rawMembershipId !== 'null') {
+					if (
+						rawMembershipId !== '[object Object]' &&
+						rawMembershipId !== 'undefined' &&
+						rawMembershipId !== 'null'
+					) {
 						membershipId = rawMembershipId;
 					}
 				} else if (typeof rawMembershipId === 'object') {
@@ -539,7 +540,7 @@ export function MembersPage() {
 					membershipId = extractId(rawMembershipId);
 				}
 			}
-			
+
 			// If that didn't work, try membership.id (this is usually more reliable)
 			if (!membershipId && membershipTransaction.membership) {
 				const membershipObj = membershipTransaction.membership;
@@ -554,7 +555,7 @@ export function MembersPage() {
 					}
 				}
 			}
-			
+
 			// Debug: Log if we couldn't extract the ID
 			if (!membershipId && membershipTransaction) {
 				console.warn('⚠️ Could not extract membershipId for member:', {
@@ -606,7 +607,9 @@ export function MembersPage() {
 			subscriptionUsesDays,
 			subscriptionDayDuration,
 			subscriptionStartedAt:
-				typeof membershipTransaction?.startedAt === 'string' ? membershipTransaction.startedAt : undefined,
+				typeof membershipTransaction?.startedAt === 'string'
+					? membershipTransaction.startedAt
+					: undefined,
 			disableReason: typeof m.disableReason === 'string' ? m.disableReason : '',
 			disabledAt: typeof m.disabledAt === 'string' ? m.disabledAt : undefined,
 			updatedAt: typeof m.updatedAt === 'string' ? m.updatedAt : undefined,
@@ -638,12 +641,11 @@ export function MembersPage() {
 
 		const filtered = apiMembers.filter((member) => {
 			const searchable = normalizeFilterValue(
-				`${member.name} ${member.email} ${member.phone} ${member.membership} ${member.status} ${member.id}`,
+				`${member.name} ${member.email} ${member.phone} ${member.membership} ${member.status} ${member.id}`
 			);
 			const matchesSearch = !normalizedSearch || searchable.includes(normalizedSearch);
 			const matchesStatus =
-				statusFilter === 'all' ||
-				normalizeFilterValue(member.status) === normalizedStatusFilter;
+				statusFilter === 'all' || normalizeFilterValue(member.status) === normalizedStatusFilter;
 			const matchesMembership =
 				membershipFilter === 'all' ||
 				normalizeFilterValue(member.membership) === normalizedMembershipFilter;
@@ -663,8 +665,7 @@ export function MembersPage() {
 	const isMemberInPausedWindow = (member: Member): boolean => {
 		const pausedMarkedAt = pausedMarkersByMemberId[member.id];
 		const pausedByMarker =
-			typeof pausedMarkedAt === 'number' &&
-			nowMs < pausedMarkedAt + PAUSED_AFTER_EXPIRY_WINDOW_MS;
+			typeof pausedMarkedAt === 'number' && nowMs < pausedMarkedAt + PAUSED_AFTER_EXPIRY_WINDOW_MS;
 		const normalizedMembership = String(member.membership || '')
 			.trim()
 			.toLowerCase();
@@ -684,7 +685,16 @@ export function MembersPage() {
 		return pausedByMarker || pausedByRecentInactiveUpdate || pausedFromExpiresAt;
 	};
 
-	const memberExportHead = ['Member', 'Email', 'Phone', 'Membership', 'Status', 'Disabled Reason', 'Join Date', 'Expires'];
+	const memberExportHead = [
+		'Member',
+		'Email',
+		'Phone',
+		'Membership',
+		'Status',
+		'Disabled Reason',
+		'Join Date',
+		'Expires',
+	];
 	const memberExportRows = filteredMembers.map((member) => [
 		member.name,
 		member.email,
@@ -785,7 +795,7 @@ export function MembersPage() {
 
 	const handleRenew = (member: Member) => {
 		console.log('🔔 Renew button clicked for member:', member);
-		
+
 		if (!member || !member.id) {
 			console.error('❌ Invalid member data:', member);
 			dispatch(
@@ -796,14 +806,19 @@ export function MembersPage() {
 			);
 			return;
 		}
-		
+
 		// Safely extract membership ID - it should already be extracted, but double-check
 		let membershipId = member.membershipId;
 		if (membershipId) {
 			membershipId = extractId(membershipId);
 		}
-		
-		if (!membershipId || membershipId === 'undefined' || membershipId === 'null' || membershipId.includes('[object')) {
+
+		if (
+			!membershipId ||
+			membershipId === 'undefined' ||
+			membershipId === 'null' ||
+			membershipId.includes('[object')
+		) {
 			console.error('❌ Invalid membership ID:', {
 				original: member.membershipId,
 				extracted: membershipId,
@@ -817,9 +832,9 @@ export function MembersPage() {
 			);
 			return;
 		}
-		
+
 		console.log('✅ Valid membership ID extracted:', membershipId);
-		
+
 		setMemberToRenew({
 			id: member.id,
 			name: member.name,
@@ -877,7 +892,7 @@ export function MembersPage() {
 					membershipId: membershipId,
 					membershipIdType: typeof membershipId,
 				});
-				
+
 				await renewMembershipMutation({
 					variables: {
 						input: {
@@ -891,7 +906,6 @@ export function MembersPage() {
 			}
 		}
 	};
-
 
 	// Show loading state
 	if (loading) {
@@ -949,7 +963,8 @@ export function MembersPage() {
 						Member Management
 					</h1>
 					<p className="text-gray-600 dark:text-gray-400 mt-1">
-						Manage all gym members, view details, and update information ({apiMembers.length} total, {filteredMembers.length} filtered)
+						Manage all gym members, view details, and update information ({apiMembers.length} total,{' '}
+						{filteredMembers.length} filtered)
 					</p>
 				</div>
 				<ExportDownloadDropdown onExportPdf={handleExportPdf} onExportCsv={handleExportCsv} />
@@ -1037,9 +1052,7 @@ export function MembersPage() {
 									<tr
 										key={member.id}
 										className={`members-table tbody tr ${
-											member.status === 'Disabled'
-												? 'bg-[rgba(71,85,105,0.30)] opacity-40'
-												: ''
+											member.status === 'Disabled' ? 'bg-[rgba(71,85,105,0.30)] opacity-40' : ''
 										}`}
 									>
 										<td className="px-4 py-5">
@@ -1094,19 +1107,19 @@ export function MembersPage() {
 													);
 												}
 												return (
-											<span
-												className={`status-badge inline-flex min-w-[90px] items-center justify-center px-2.5 py-1.5 text-xs rounded-lg font-semibold ${
-													displayStatus === 'Active'
-														? 'active bg-[rgba(16,185,129,0.15)] text-[#10B981] border border-[rgba(16,185,129,0.3)]'
-														: displayStatus === 'Inactive'
-															? 'inactive bg-[rgba(107,114,128,0.15)] text-[#9CA3AF] border border-[rgba(107,114,128,0.3)]'
-															: displayStatus === 'Pending'
-																	? 'bg-[rgba(59,130,246,0.15)] text-[#93C5FD] border border-[rgba(59,130,246,0.3)]'
-															: 'suspended bg-[rgba(148,163,184,0.16)] text-[#E2E8F0] border border-[rgba(148,163,184,0.35)]'
-												}`}
-											>
-												{displayStatus}
-											</span>
+													<span
+														className={`status-badge inline-flex min-w-[90px] items-center justify-center px-2.5 py-1.5 text-xs rounded-lg font-semibold ${
+															displayStatus === 'Active'
+																? 'active bg-[rgba(16,185,129,0.15)] text-[#10B981] border border-[rgba(16,185,129,0.3)]'
+																: displayStatus === 'Inactive'
+																	? 'inactive bg-[rgba(107,114,128,0.15)] text-[#9CA3AF] border border-[rgba(107,114,128,0.3)]'
+																	: displayStatus === 'Pending'
+																		? 'bg-[rgba(59,130,246,0.15)] text-[#93C5FD] border border-[rgba(59,130,246,0.3)]'
+																		: 'suspended bg-[rgba(148,163,184,0.16)] text-[#E2E8F0] border border-[rgba(148,163,184,0.35)]'
+														}`}
+													>
+														{displayStatus}
+													</span>
 												);
 											})()}
 										</td>
@@ -1151,9 +1164,7 @@ export function MembersPage() {
 										<td className="px-4 py-5 text-center">
 											<Popover
 												open={openDropdownId === member.id}
-												onOpenChange={(open) =>
-													setOpenDropdownId(open ? member.id : null)
-												}
+												onOpenChange={(open) => setOpenDropdownId(open ? member.id : null)}
 											>
 												<PopoverTrigger asChild>
 													<button
@@ -1181,121 +1192,121 @@ export function MembersPage() {
 														className="flex flex-col gap-0.5"
 														aria-label={`Actions for ${member.name}`}
 													>
-													<button
-														type="button"
-														role="menuitem"
-														className={memberMenuItemClass}
-														onClick={() => {
-															handleView(member);
-															closeMemberActionsMenu();
-														}}
-													>
-														View details
-													</button>
+														<button
+															type="button"
+															role="menuitem"
+															className={memberMenuItemClass}
+															onClick={() => {
+																handleView(member);
+																closeMemberActionsMenu();
+															}}
+														>
+															View details
+														</button>
 
-													{member.status === 'Disabled' ? (
-														<>
-															<div
-																className="mx-1 my-1 h-px bg-[rgba(255,255,255,0.08)]"
-																role="separator"
-															/>
-															<button
-																type="button"
-																role="menuitem"
-																className={memberMenuItemClass}
-																onClick={async () => {
-																	try {
-																		await enableUserMutation({
-																			variables: { id: member.id },
-																		});
+														{member.status === 'Disabled' ? (
+															<>
+																<div
+																	className="mx-1 my-1 h-px bg-[rgba(255,255,255,0.08)]"
+																	role="separator"
+																/>
+																<button
+																	type="button"
+																	role="menuitem"
+																	className={memberMenuItemClass}
+																	onClick={async () => {
+																		try {
+																			await enableUserMutation({
+																				variables: { id: member.id },
+																			});
+																			closeMemberActionsMenu();
+																		} catch {
+																			/* toast from mutation */
+																		}
+																	}}
+																>
+																	Enable account
+																</button>
+															</>
+														) : member.status === 'Active' && member.transactionId ? (
+															<>
+																<div
+																	className="mx-1 my-1 h-px bg-[rgba(255,255,255,0.08)]"
+																	role="separator"
+																/>
+																<button
+																	type="button"
+																	role="menuitem"
+																	className={memberMenuItemClass}
+																	onClick={() => {
+																		handleRenew(member);
 																		closeMemberActionsMenu();
-																	} catch {
-																		/* toast from mutation */
-																	}
-																}}
-															>
-																Enable account
-															</button>
-														</>
-													) : member.status === 'Active' && member.transactionId ? (
-														<>
-															<div
-																className="mx-1 my-1 h-px bg-[rgba(255,255,255,0.08)]"
-																role="separator"
-															/>
-															<button
-																type="button"
-																role="menuitem"
-																className={memberMenuItemClass}
-																onClick={() => {
-																	handleRenew(member);
-																	closeMemberActionsMenu();
-																}}
-															>
-																Renew plan
-															</button>
-															<button
-																type="button"
-																role="menuitem"
-																className={memberMenuItemClass}
-																onClick={() => {
-																	handleAdjustDuration(member);
-																	closeMemberActionsMenu();
-																}}
-															>
-																Edit subscription length
-															</button>
-															<button
-																type="button"
-																role="menuitem"
-																className={memberMenuItemClass}
-																onClick={() => {
-																	handleUnsubscribe(member);
-																	closeMemberActionsMenu();
-																}}
-															>
-																Unsubscribe
-															</button>
-														</>
-													) : (
-														<>
-															<div
-																className="mx-1 my-1 h-px bg-[rgba(255,255,255,0.08)]"
-																role="separator"
-															/>
-															<button
-																type="button"
-																role="menuitem"
-																className={memberMenuItemClass}
-																onClick={() => {
-																	handleSubscribe(member);
-																	closeMemberActionsMenu();
-																}}
-															>
-																Subscribe to plan
-															</button>
-														</>
-													)}
+																	}}
+																>
+																	Renew plan
+																</button>
+																<button
+																	type="button"
+																	role="menuitem"
+																	className={memberMenuItemClass}
+																	onClick={() => {
+																		handleAdjustDuration(member);
+																		closeMemberActionsMenu();
+																	}}
+																>
+																	Edit subscription length
+																</button>
+																<button
+																	type="button"
+																	role="menuitem"
+																	className={memberMenuItemClass}
+																	onClick={() => {
+																		handleUnsubscribe(member);
+																		closeMemberActionsMenu();
+																	}}
+																>
+																	Unsubscribe
+																</button>
+															</>
+														) : (
+															<>
+																<div
+																	className="mx-1 my-1 h-px bg-[rgba(255,255,255,0.08)]"
+																	role="separator"
+																/>
+																<button
+																	type="button"
+																	role="menuitem"
+																	className={memberMenuItemClass}
+																	onClick={() => {
+																		handleSubscribe(member);
+																		closeMemberActionsMenu();
+																	}}
+																>
+																	Subscribe to plan
+																</button>
+															</>
+														)}
 
-													{member.status !== 'Disabled' && (
-														<>
-															<div
-																className="mx-1 my-1 h-px bg-[rgba(255,255,255,0.08)]"
-																role="separator"
-															/>
-															<button
-																type="button"
-																role="menuitem"
-																className={`${memberMenuItemClass} focus-visible:ring-[rgba(239,68,68,0.35)]`}
-																onClick={() => {
-																	handleDelete(member);
-																	closeMemberActionsMenu();
-																}}
-															>
-																Disable account
-															</button>
-														</>
-													)}
+														{member.status !== 'Disabled' && (
+															<>
+																<div
+																	className="mx-1 my-1 h-px bg-[rgba(255,255,255,0.08)]"
+																	role="separator"
+																/>
+																<button
+																	type="button"
+																	role="menuitem"
+																	className={`${memberMenuItemClass} focus-visible:ring-[rgba(239,68,68,0.35)]`}
+																	onClick={() => {
+																		handleDelete(member);
+																		closeMemberActionsMenu();
+																	}}
+																>
+																	Disable account
+																</button>
+															</>
+														)}
 													</div>
 												</PopoverContent>
 											</Popover>
@@ -1344,10 +1355,13 @@ export function MembersPage() {
 							</div>
 							<h3 className="modal-delete-title">Disable Member?</h3>
 							<p className="modal-delete-text">
-								Disable {selectedMember.name}? Account access will be blocked but all records stay intact.
+								Disable {selectedMember.name}? Account access will be blocked but all records stay
+								intact.
 							</p>
 							<div className="mb-4">
-								<label className="block text-sm text-[var(--text-secondary)] mb-2">Reason for disabling</label>
+								<label className="block text-sm text-[var(--text-secondary)] mb-2">
+									Reason for disabling
+								</label>
 								<input
 									type="text"
 									value={disableReason}
@@ -1462,8 +1476,8 @@ export function MembersPage() {
 							<h2 className="modal-title mb-2 text-left">Unsubscribe member</h2>
 
 							<p className="modal-text mb-5 text-left">
-								Confirm unsubscribe for <strong>{memberToUnsubscribe.name}</strong>. They will be marked as
-								inactive until subscribed again.
+								Confirm unsubscribe for <strong>{memberToUnsubscribe.name}</strong>. They will be
+								marked as inactive until subscribed again.
 							</p>
 							<div className="mb-5">
 								<label className="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
@@ -1523,10 +1537,10 @@ export function MembersPage() {
 								<div
 									className="modal-success-icon-large"
 									style={{
-										background: 'linear-gradient(135deg, var(--primary-red), var(--primary-yellow))',
+										background: 'var(--primary-yellow)',
 									}}
 								>
-									<RotateCw size={48} style={{ color: 'white' }} />
+									<RotateCw size={48} style={{ color: '#090b0d' }} />
 								</div>
 							</div>
 
@@ -1592,9 +1606,7 @@ export function MembersPage() {
 											Processing...
 										</>
 									) : (
-										<>
-											Renew
-										</>
+										<>Renew</>
 									)}
 								</button>
 							</div>
@@ -1603,10 +1615,7 @@ export function MembersPage() {
 				</div>
 			)}
 			{expiredMemberModalName && (
-				<div
-					className="modal-overlay active"
-					onClick={() => setExpiredMemberModalName(null)}
-				>
+				<div className="modal-overlay active" onClick={() => setExpiredMemberModalName(null)}>
 					<div className="modal modal-center" onClick={(e) => e.stopPropagation()}>
 						<div className="modal-body">
 							<div style={{ textAlign: 'center', marginBottom: '1rem' }}>
@@ -1618,7 +1627,8 @@ export function MembersPage() {
 								Membership ended
 							</h2>
 							<p className="modal-text" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-								{expiredMemberModalName}&apos;s membership has just expired. You can renew from Member Management.
+								{expiredMemberModalName}&apos;s membership has just expired. You can renew from
+								Member Management.
 							</p>
 							<div className="modal-actions" style={{ display: 'flex', justifyContent: 'center' }}>
 								<button
@@ -1647,15 +1657,15 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 	// Fetch all coaches to match with coach IDs
 	const { data: coachesData } = useQuery(GET_USERS, {
 		variables: { role: 'coach' as any },
-		skip: !memberData?.getUser?.membershipDetails?.coachesIds || 
+		skip:
+			!memberData?.getUser?.membershipDetails?.coachesIds ||
 			memberData?.getUser?.membershipDetails?.coachesIds?.length === 0,
 	});
 
 	const memberDetails = memberData?.getUser;
 	const coachesIds = memberDetails?.membershipDetails?.coachesIds || [];
-	const assignedCoaches = coachesData?.getUsers?.filter((coach: any) =>
-		coachesIds.includes(coach.id)
-	) || [];
+	const assignedCoaches =
+		coachesData?.getUsers?.filter((coach: any) => coachesIds.includes(coach.id)) || [];
 
 	return (
 		<div className="modal modal-large" onClick={(e) => e.stopPropagation()}>
@@ -1677,185 +1687,199 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 					<div className="space-y-6">
 						{/* Basic Information Grid */}
 						<div className="grid grid-cols-2 gap-6">
-					{/* Personal Information */}
-					<div>
-						<h3 className="font-semibold mb-3 text-[var(--text-primary)]">Personal Information</h3>
-						<div className="space-y-2 text-sm">
+							{/* Personal Information */}
 							<div>
-								<span className="text-[var(--text-secondary)]">Full Name:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)]">{member.name}</span>
-							</div>
-							<div>
-								<span className="text-[var(--text-secondary)]">First Name:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)]">{member.firstName}</span>
-							</div>
-							{member.middleName && (
-								<div>
-									<span className="text-[var(--text-secondary)]">Middle Name:</span>{' '}
-									<span className="font-medium text-[var(--text-primary)]">
-										{member.middleName}
-									</span>
+								<h3 className="font-semibold mb-3 text-[var(--text-primary)]">
+									Personal Information
+								</h3>
+								<div className="space-y-2 text-sm">
+									<div>
+										<span className="text-[var(--text-secondary)]">Full Name:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)]">{member.name}</span>
+									</div>
+									<div>
+										<span className="text-[var(--text-secondary)]">First Name:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)]">
+											{member.firstName}
+										</span>
+									</div>
+									{member.middleName && (
+										<div>
+											<span className="text-[var(--text-secondary)]">Middle Name:</span>{' '}
+											<span className="font-medium text-[var(--text-primary)]">
+												{member.middleName}
+											</span>
+										</div>
+									)}
+									<div>
+										<span className="text-[var(--text-secondary)]">Last Name:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)]">
+											{member.lastName}
+										</span>
+									</div>
+									<div>
+										<span className="text-[var(--text-secondary)]">Email:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)]">{member.email}</span>
+									</div>
+									<div>
+										<span className="text-[var(--text-secondary)]">Phone:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)]">{member.phone}</span>
+									</div>
+									<div>
+										<span className="text-[var(--text-secondary)]">Date of Birth:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)]">
+											{member.dateOfBirth && member.dateOfBirth !== 'N/A'
+												? new Date(member.dateOfBirth).toLocaleDateString('en-US', {
+														year: 'numeric',
+														month: 'long',
+														day: 'numeric',
+													})
+												: 'N/A'}
+										</span>
+									</div>
+									<div>
+										<span className="text-[var(--text-secondary)]">Gender:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)]">
+											{member.gender || 'N/A'}
+										</span>
+									</div>
 								</div>
-							)}
-							<div>
-								<span className="text-[var(--text-secondary)]">Last Name:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)]">{member.lastName}</span>
 							</div>
-							<div>
-								<span className="text-[var(--text-secondary)]">Email:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)]">{member.email}</span>
-							</div>
-							<div>
-								<span className="text-[var(--text-secondary)]">Phone:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)]">{member.phone}</span>
-							</div>
-							<div>
-								<span className="text-[var(--text-secondary)]">Date of Birth:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)]">
-									{member.dateOfBirth && member.dateOfBirth !== 'N/A'
-										? new Date(member.dateOfBirth).toLocaleDateString('en-US', {
-												year: 'numeric',
-												month: 'long',
-												day: 'numeric',
-											})
-										: 'N/A'}
-								</span>
-							</div>
-							<div>
-								<span className="text-[var(--text-secondary)]">Gender:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)]">
-									{member.gender || 'N/A'}
-								</span>
-							</div>
-						</div>
-					</div>
 
-					{/* Membership & Subscription */}
-					<div>
-						<h3 className="font-semibold mb-3 text-[var(--text-primary)]">
-							Membership & Subscription
-						</h3>
-						<div className="space-y-2 text-sm">
+							{/* Membership & Subscription */}
 							<div>
-								<span className="text-[var(--text-secondary)]">Membership Plan:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)]">{member.membership}</span>
+								<h3 className="font-semibold mb-3 text-[var(--text-primary)]">
+									Membership & Subscription
+								</h3>
+								<div className="space-y-2 text-sm">
+									<div>
+										<span className="text-[var(--text-secondary)]">Membership Plan:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)]">
+											{member.membership}
+										</span>
+									</div>
+									<div>
+										<span className="text-[var(--text-secondary)]">Status:</span>{' '}
+										<span
+											className={`font-medium ${
+												member.status === 'Active' ? 'text-[#10B981]' : 'text-[var(--text-primary)]'
+											}`}
+										>
+											{member.status}
+										</span>
+									</div>
+									{member.durationType && (
+										<div>
+											<span className="text-[var(--text-secondary)]">Duration Type:</span>{' '}
+											<span className="font-medium text-[var(--text-primary)]">
+												{member.durationType}
+											</span>
+										</div>
+									)}
+									{member.subscriptionUsesDays ||
+									memberDetails?.currentMembership?.dayDuration != null ||
+									memberDetails?.currentMembership?.membership?.durationType === 'DAILY' ? (
+										<div>
+											<span className="text-[var(--text-secondary)]">Subscription length:</span>{' '}
+											<span className="font-medium text-[var(--text-primary)]">
+												{(() => {
+													const d =
+														memberDetails?.currentMembership?.dayDuration ??
+														member.subscriptionDayDuration ??
+														1;
+													return `${d} day${d === 1 ? '' : 's'}`;
+												})()}
+											</span>
+										</div>
+									) : (member.subscriptionMonthDuration != null &&
+											member.subscriptionMonthDuration >= 1) ||
+									  (memberDetails?.currentMembership?.monthDuration != null &&
+											memberDetails.currentMembership.monthDuration >= 1) ? (
+										<div>
+											<span className="text-[var(--text-secondary)]">Subscription length:</span>{' '}
+											<span className="font-medium text-[var(--text-primary)]">
+												{memberDetails?.currentMembership?.monthDuration ??
+													member.subscriptionMonthDuration}{' '}
+												month
+												{(memberDetails?.currentMembership?.monthDuration ??
+													member.subscriptionMonthDuration) !== 1
+													? 's'
+													: ''}
+											</span>
+										</div>
+									) : null}
+									{member.startDate && (
+										<div>
+											<span className="text-[var(--text-secondary)]">Start Date:</span>{' '}
+											<span className="font-medium text-[var(--text-primary)]">
+												{new Date(member.startDate).toLocaleDateString('en-US', {
+													year: 'numeric',
+													month: 'long',
+													day: 'numeric',
+												})}
+											</span>
+										</div>
+									)}
+									{member.expiresAt && member.status === 'Active' && (
+										<div>
+											<span className="text-[var(--text-secondary)]">Expires:</span>{' '}
+											<span className="font-medium text-[var(--text-primary)]">
+												{member.endDate ||
+													new Date(member.expiresAt).toLocaleDateString('en-US', {
+														month: 'short',
+														day: 'numeric',
+														year: 'numeric',
+													})}
+											</span>
+										</div>
+									)}
+								</div>
 							</div>
-							<div>
-								<span className="text-[var(--text-secondary)]">Status:</span>{' '}
-								<span
-									className={`font-medium ${
-										member.status === 'Active' ? 'text-[#10B981]' : 'text-[var(--text-primary)]'
-									}`}
-								>
-									{member.status}
-								</span>
-							</div>
-							{member.durationType && (
-								<div>
-									<span className="text-[var(--text-secondary)]">Duration Type:</span>{' '}
-									<span className="font-medium text-[var(--text-primary)]">
-										{member.durationType}
-									</span>
-								</div>
-							)}
-							{member.subscriptionUsesDays ||
-							memberDetails?.currentMembership?.dayDuration != null ||
-							memberDetails?.currentMembership?.membership?.durationType === 'DAILY' ? (
-								<div>
-									<span className="text-[var(--text-secondary)]">Subscription length:</span>{' '}
-									<span className="font-medium text-[var(--text-primary)]">
-										{(() => {
-											const d =
-												memberDetails?.currentMembership?.dayDuration ??
-												member.subscriptionDayDuration ??
-												1;
-											return `${d} day${d === 1 ? '' : 's'}`;
-										})()}
-									</span>
-								</div>
-							) : (member.subscriptionMonthDuration != null && member.subscriptionMonthDuration >= 1) ||
-							  (memberDetails?.currentMembership?.monthDuration != null &&
-									memberDetails.currentMembership.monthDuration >= 1) ? (
-								<div>
-									<span className="text-[var(--text-secondary)]">Subscription length:</span>{' '}
-									<span className="font-medium text-[var(--text-primary)]">
-										{memberDetails?.currentMembership?.monthDuration ??
-											member.subscriptionMonthDuration}{' '}
-										month
-										{(memberDetails?.currentMembership?.monthDuration ??
-											member.subscriptionMonthDuration) !== 1
-											? 's'
-											: ''}
-									</span>
-								</div>
-							) : null}
-							{member.startDate && (
-								<div>
-									<span className="text-[var(--text-secondary)]">Start Date:</span>{' '}
-									<span className="font-medium text-[var(--text-primary)]">
-										{new Date(member.startDate).toLocaleDateString('en-US', {
-											year: 'numeric',
-											month: 'long',
-											day: 'numeric',
-										})}
-									</span>
-								</div>
-							)}
-							{member.expiresAt && member.status === 'Active' && (
-								<div>
-									<span className="text-[var(--text-secondary)]">Expires:</span>{' '}
-									<span className="font-medium text-[var(--text-primary)]">
-										{member.endDate || new Date(member.expiresAt).toLocaleDateString('en-US', { 
-											month: 'short', 
-											day: 'numeric',
-											year: 'numeric' 
-										})}
-									</span>
-								</div>
-							)}
-						</div>
-					</div>
 
-					{/* Fitness Goals & Preferences */}
-					<div>
-						<h3 className="font-semibold mb-3 text-[var(--text-primary)]">
-							Fitness Goals & Preferences
-						</h3>
-						<div className="space-y-2 text-sm">
+							{/* Fitness Goals & Preferences */}
 							<div>
-								<span className="text-[var(--text-secondary)]">Fitness Goals:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)]">
-									{member.fitnessGoals || 'N/A'}
-								</span>
-							</div>
-						</div>
-					</div>
-
-					{/* Account Information */}
-					<div>
-						<h3 className="font-semibold mb-3 text-[var(--text-primary)]">Account Information</h3>
-						<div className="space-y-2 text-sm">
-							<div>
-								<span className="text-[var(--text-secondary)]">Member ID:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)] font-mono text-xs">
-									{member.id}
-								</span>
-							</div>
-							<div>
-								<span className="text-[var(--text-secondary)]">Join Date:</span>{' '}
-								<span className="font-medium text-[var(--text-primary)]">{member.joinDate}</span>
-							</div>
-							{member.transactionId && (
-								<div>
-									<span className="text-[var(--text-secondary)]">Transaction ID:</span>{' '}
-									<span className="font-medium text-[var(--text-primary)] font-mono text-xs">
-										{member.transactionId}
-									</span>
+								<h3 className="font-semibold mb-3 text-[var(--text-primary)]">
+									Fitness Goals & Preferences
+								</h3>
+								<div className="space-y-2 text-sm">
+									<div>
+										<span className="text-[var(--text-secondary)]">Fitness Goals:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)]">
+											{member.fitnessGoals || 'N/A'}
+										</span>
+									</div>
 								</div>
-							)}
+							</div>
+
+							{/* Account Information */}
+							<div>
+								<h3 className="font-semibold mb-3 text-[var(--text-primary)]">
+									Account Information
+								</h3>
+								<div className="space-y-2 text-sm">
+									<div>
+										<span className="text-[var(--text-secondary)]">Member ID:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)] font-mono text-xs">
+											{member.id}
+										</span>
+									</div>
+									<div>
+										<span className="text-[var(--text-secondary)]">Join Date:</span>{' '}
+										<span className="font-medium text-[var(--text-primary)]">
+											{member.joinDate}
+										</span>
+									</div>
+									{member.transactionId && (
+										<div>
+											<span className="text-[var(--text-secondary)]">Transaction ID:</span>{' '}
+											<span className="font-medium text-[var(--text-primary)] font-mono text-xs">
+												{member.transactionId}
+											</span>
+										</div>
+									)}
+								</div>
+							</div>
 						</div>
-					</div>
-				</div>
 
 						{/* Assigned Coaches Section */}
 						{assignedCoaches.length > 0 && (
@@ -1884,18 +1908,21 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 													</p>
 												</div>
 											</div>
-											{coach.coachDetails?.specialization && coach.coachDetails.specialization.length > 1 && (
-												<div className="mt-2 flex flex-wrap gap-1">
-													{coach.coachDetails.specialization.slice(1).map((spec: string, idx: number) => (
-														<span
-															key={idx}
-															className="text-xs px-2 py-1 bg-[rgba(249,197,19,0.1)] text-[var(--primary-yellow)] rounded"
-														>
-															{spec}
-														</span>
-													))}
-												</div>
-											)}
+											{coach.coachDetails?.specialization &&
+												coach.coachDetails.specialization.length > 1 && (
+													<div className="mt-2 flex flex-wrap gap-1">
+														{coach.coachDetails.specialization
+															.slice(1)
+															.map((spec: string, idx: number) => (
+																<span
+																	key={idx}
+																	className="text-xs px-2 py-1 bg-[rgba(249,197,19,0.1)] text-[var(--primary-yellow)] rounded"
+																>
+																	{spec}
+																</span>
+															))}
+													</div>
+												)}
 										</div>
 									))}
 								</div>
@@ -1912,16 +1939,22 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 								<div className="p-4 bg-[rgba(255,255,255,0.03)] border border-[var(--card-border)] rounded-lg">
 									<div className="flex items-center gap-3 mb-2">
 										<Target className="w-5 h-5 text-[var(--primary-yellow)]" />
-										<span className="text-sm font-medium text-[var(--text-secondary)]">Fitness Goal</span>
+										<span className="text-sm font-medium text-[var(--text-secondary)]">
+											Fitness Goal
+										</span>
 									</div>
 									<p className="text-lg font-semibold text-[var(--text-primary)]">
-										{memberDetails?.membershipDetails?.fitnessGoal || member.fitnessGoals || 'Not Set'}
+										{memberDetails?.membershipDetails?.fitnessGoal ||
+											member.fitnessGoals ||
+											'Not Set'}
 									</p>
 								</div>
 								<div className="p-4 bg-[rgba(255,255,255,0.03)] border border-[var(--card-border)] rounded-lg">
 									<div className="flex items-center gap-3 mb-2">
 										<Dumbbell className="w-5 h-5 text-[var(--primary-yellow)]" />
-										<span className="text-sm font-medium text-[var(--text-secondary)]">Physique Goal</span>
+										<span className="text-sm font-medium text-[var(--text-secondary)]">
+											Physique Goal
+										</span>
 									</div>
 									<p className="text-lg font-semibold text-[var(--text-primary)]">
 										{memberDetails?.membershipDetails?.physiqueGoalType || 'Not Set'}
@@ -1930,7 +1963,9 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 								<div className="p-4 bg-[rgba(255,255,255,0.03)] border border-[var(--card-border)] rounded-lg">
 									<div className="flex items-center gap-3 mb-2">
 										<Clock className="w-5 h-5 text-[var(--primary-yellow)]" />
-										<span className="text-sm font-medium text-[var(--text-secondary)]">Workout Time</span>
+										<span className="text-sm font-medium text-[var(--text-secondary)]">
+											Workout Time
+										</span>
 									</div>
 									<p className="text-lg font-semibold text-[var(--text-primary)]">
 										{memberDetails?.membershipDetails?.workOutTime || 'Not Set'}
@@ -1942,7 +1977,9 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 									<div className="p-4 bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.2)] rounded-lg">
 										<div className="flex items-center gap-2 mb-1">
 											<TrendingUp className="w-4 h-4 text-[#10B981]" />
-											<span className="text-sm font-medium text-[var(--text-secondary)]">Weight Lost</span>
+											<span className="text-sm font-medium text-[var(--text-secondary)]">
+												Weight Lost
+											</span>
 										</div>
 										<p className="text-2xl font-bold text-[#10B981]">
 											{member.progress.weightLost > 0 ? `${member.progress.weightLost} kg` : 'N/A'}
@@ -1951,7 +1988,9 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 									<div className="p-4 bg-[rgba(59,130,246,0.1)] border border-[rgba(59,130,246,0.2)] rounded-lg">
 										<div className="flex items-center gap-2 mb-1">
 											<Activity className="w-4 h-4 text-[#3B82F6]" />
-											<span className="text-sm font-medium text-[var(--text-secondary)]">Workouts Completed</span>
+											<span className="text-sm font-medium text-[var(--text-secondary)]">
+												Workouts Completed
+											</span>
 										</div>
 										<p className="text-2xl font-bold text-[#3B82F6]">
 											{member.progress.workoutsCompleted || 0}
@@ -1975,11 +2014,12 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 										<div className="flex-1">
 											<p className="font-medium text-[var(--text-primary)]">Account Created</p>
 											<p className="text-sm text-[var(--text-secondary)]">
-												{member.joinDate || new Date(memberDetails?.createdAt || '').toLocaleDateString('en-US', {
-													year: 'numeric',
-													month: 'long',
-													day: 'numeric',
-												})}
+												{member.joinDate ||
+													new Date(memberDetails?.createdAt || '').toLocaleDateString('en-US', {
+														year: 'numeric',
+														month: 'long',
+														day: 'numeric',
+													})}
 											</p>
 										</div>
 									</div>
@@ -1987,10 +2027,14 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 										<div className="flex items-start gap-4 p-4 bg-[rgba(255,255,255,0.03)] border border-[var(--card-border)] rounded-lg">
 											<div className="w-2 h-2 rounded-full bg-[#10B981] mt-2"></div>
 											<div className="flex-1">
-												<p className="font-medium text-[var(--text-primary)]">Membership Activated</p>
+												<p className="font-medium text-[var(--text-primary)]">
+													Membership Activated
+												</p>
 												<p className="text-sm text-[var(--text-secondary)]">
 													{memberDetails.currentMembership.startedAt
-														? new Date(memberDetails.currentMembership.startedAt).toLocaleDateString('en-US', {
+														? new Date(
+																memberDetails.currentMembership.startedAt
+															).toLocaleDateString('en-US', {
 																year: 'numeric',
 																month: 'long',
 																day: 'numeric',
@@ -2007,7 +2051,9 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 										<div className="flex items-start gap-4 p-4 bg-[rgba(255,255,255,0.03)] border border-[var(--card-border)] rounded-lg">
 											<div className="w-2 h-2 rounded-full bg-[#3B82F6] mt-2"></div>
 											<div className="flex-1">
-												<p className="font-medium text-[var(--text-primary)]">Profile Details Completed</p>
+												<p className="font-medium text-[var(--text-primary)]">
+													Profile Details Completed
+												</p>
 												<p className="text-sm text-[var(--text-secondary)]">
 													Member has completed their profile setup
 												</p>
@@ -2020,7 +2066,8 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 											<div className="flex-1">
 												<p className="font-medium text-[var(--text-primary)]">Coach Assigned</p>
 												<p className="text-sm text-[var(--text-secondary)]">
-													{assignedCoaches.length} coach{assignedCoaches.length > 1 ? 'es' : ''} assigned
+													{assignedCoaches.length} coach{assignedCoaches.length > 1 ? 'es' : ''}{' '}
+													assigned
 												</p>
 											</div>
 										</div>
@@ -2031,7 +2078,9 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 								<div className="mt-4 p-4 bg-[rgba(255,255,255,0.02)] border border-[var(--card-border)] rounded-lg">
 									<div className="flex items-center gap-2 mb-2">
 										<Calendar className="w-4 h-4 text-[var(--text-secondary)]" />
-										<span className="text-sm font-medium text-[var(--text-secondary)]">Session History</span>
+										<span className="text-sm font-medium text-[var(--text-secondary)]">
+											Session History
+										</span>
 									</div>
 									<p className="text-sm text-[var(--text-secondary)]">
 										Session logs and detailed workout history will be displayed here when available.
@@ -2085,7 +2134,9 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 								<p className="mt-1 text-sm text-[var(--text-secondary)]">
 									<span className="text-[var(--text-primary)] font-medium">Disabled at:</span>{' '}
 									{member.disabledAt
-										? new Date(member.disabledAt).toLocaleString('en-PH', { timeZone: 'Asia/Manila' })
+										? new Date(member.disabledAt).toLocaleString('en-PH', {
+												timeZone: 'Asia/Manila',
+											})
 										: 'N/A'}
 								</p>
 							</div>
@@ -2101,4 +2152,3 @@ function MemberViewModal({ member, onClose }: { member: Member; onClose: () => v
 		</div>
 	);
 }
-

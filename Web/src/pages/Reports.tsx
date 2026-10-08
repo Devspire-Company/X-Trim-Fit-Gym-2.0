@@ -63,7 +63,9 @@ async function loadImageAsDataUrl(path: string): Promise<string | null> {
 	}
 }
 
-async function getImageDimensions(dataUrl: string): Promise<{ width: number; height: number } | null> {
+async function getImageDimensions(
+	dataUrl: string
+): Promise<{ width: number; height: number } | null> {
 	return await new Promise((resolve) => {
 		const img = new Image();
 		img.onload = () => {
@@ -195,10 +197,10 @@ export function ReportsPage() {
 		};
 	}, []);
 	const currentUser = useAppSelector((s) => s.auth.user);
-	const exportedByLabel = [currentUser?.firstName, currentUser?.lastName]
-		.filter(Boolean)
-		.join(' ')
-		.trim() || currentUser?.email || 'System';
+	const exportedByLabel =
+		[currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ').trim() ||
+		currentUser?.email ||
+		'System';
 	const [auditApiSupported, setAuditApiSupported] = useState(true);
 	const [downloadablesOpen, setDownloadablesOpen] = useState(false);
 	const [localExportLogs, setLocalExportLogs] = useState<LocalReportExportLog[]>([]);
@@ -318,14 +320,15 @@ export function ReportsPage() {
 
 	const userExportLoading = membersLoading || coachesLoading || adminsLoading;
 	const recentReportLogs = useMemo(() => {
-		const apiRows = auditApiSupported ? reportLogsData?.getReportDownloadLogs ?? [] : [];
+		const apiRows = auditApiSupported ? (reportLogsData?.getReportDownloadLogs ?? []) : [];
 		const deduped = new Map<string, any>();
 		[...apiRows, ...localExportLogs].forEach((row: any) => {
 			const key = `${String(row.fileName || '')}|${String(row.reportType || '')}|${String(row.createdAt || '')}`;
 			if (!deduped.has(key)) deduped.set(key, row);
 		});
 		return Array.from(deduped.values()).sort(
-			(a: any, b: any) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+			(a: any, b: any) =>
+				new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
 		);
 	}, [auditApiSupported, reportLogsData?.getReportDownloadLogs, localExportLogs]);
 	const exportsPageSize = 10;
@@ -400,7 +403,7 @@ export function ReportsPage() {
 				return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 			});
 			const membershipSeries = slice.map(
-				(a: any) => a.membershipSubscriptionRevenue ?? a.totalRevenue ?? 0,
+				(a: any) => a.membershipSubscriptionRevenue ?? a.totalRevenue ?? 0
 			);
 			const walkSeries = slice.map((a: any) => a.walkInRevenue ?? 0);
 
@@ -604,7 +607,7 @@ export function ReportsPage() {
 
 		if (revenueByPeriod.length > 0) {
 			const subDay = revenueByPeriod.map((p: any) =>
-				Math.max(0, (p.revenue ?? 0) - (p.walkInRevenue ?? 0)),
+				Math.max(0, (p.revenue ?? 0) - (p.walkInRevenue ?? 0))
 			);
 			const walkDay = revenueByPeriod.map((p: any) => p.walkInRevenue ?? 0);
 			return {
@@ -668,7 +671,7 @@ export function ReportsPage() {
 			'Analytics Report',
 			now,
 			summaryLine,
-			exportedByLabel,
+			exportedByLabel
 		);
 
 		const margin = 14;
@@ -752,7 +755,13 @@ export function ReportsPage() {
 		appendLocalExportLog(ReportType.Revenue, filename);
 		if (auditApiSupported) {
 			await logReportDownload({
-				variables: { input: { reportType: ReportType.Revenue, fileName: filename, filterSummary: 'reports-page-summary' } },
+				variables: {
+					input: {
+						reportType: ReportType.Revenue,
+						fileName: filename,
+						filterSummary: 'reports-page-summary',
+					},
+				},
 			})
 				.then(() => refetchReportLogs())
 				.catch(() => {});
@@ -786,7 +795,9 @@ export function ReportsPage() {
 			body: nearEnding.map((m: any) => [
 				`${m.firstName} ${m.lastName}`,
 				m.currentMembership?.membership?.name || 'N/A',
-				new Date(m.currentMembership?.expiresAt).toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' }),
+				new Date(m.currentMembership?.expiresAt).toLocaleDateString('en-PH', {
+					timeZone: 'Asia/Manila',
+				}),
 				m.currentMembership?.status || 'N/A',
 			]),
 			styles: { fontSize: 9 },
@@ -798,7 +809,13 @@ export function ReportsPage() {
 		appendLocalExportLog(ReportType.NearEndingMemberships, filename);
 		if (auditApiSupported) {
 			await logReportDownload({
-				variables: { input: { reportType: ReportType.NearEndingMemberships, fileName: filename, filterSummary: 'threshold=7days' } },
+				variables: {
+					input: {
+						reportType: ReportType.NearEndingMemberships,
+						fileName: filename,
+						filterSummary: 'threshold=7days',
+					},
+				},
 			})
 				.then(() => refetchReportLogs())
 				.catch(() => {});
@@ -838,7 +855,13 @@ export function ReportsPage() {
 		appendLocalExportLog(ReportType.WalkIn, filename);
 		if (auditApiSupported) {
 			await logReportDownload({
-				variables: { input: { reportType: ReportType.WalkIn, fileName: filename, filterSummary: 'accounts-overview' } },
+				variables: {
+					input: {
+						reportType: ReportType.WalkIn,
+						fileName: filename,
+						filterSummary: 'accounts-overview',
+					},
+				},
 			})
 				.then(() => refetchReportLogs())
 				.catch(() => {});
@@ -873,7 +896,11 @@ export function ReportsPage() {
 		if (auditApiSupported) {
 			void logReportDownload({
 				variables: {
-					input: { reportType: ReportType.Revenue, fileName: filename, filterSummary: 'reports-page-summary;format=csv' },
+					input: {
+						reportType: ReportType.Revenue,
+						fileName: filename,
+						filterSummary: 'reports-page-summary;format=csv',
+					},
 				},
 			})
 				.then(() => refetchReportLogs())
@@ -896,7 +923,9 @@ export function ReportsPage() {
 			rows: nearEnding.map((m: any) => [
 				`${m.firstName} ${m.lastName}`,
 				m.currentMembership?.membership?.name || 'N/A',
-				new Date(m.currentMembership?.expiresAt).toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' }),
+				new Date(m.currentMembership?.expiresAt).toLocaleDateString('en-PH', {
+					timeZone: 'Asia/Manila',
+				}),
 				m.currentMembership?.status || 'N/A',
 			]),
 		});
@@ -931,7 +960,13 @@ export function ReportsPage() {
 		appendLocalExportLog(ReportType.WalkIn, filename);
 		if (auditApiSupported) {
 			void logReportDownload({
-				variables: { input: { reportType: ReportType.WalkIn, fileName: filename, filterSummary: 'accounts-overview;format=csv' } },
+				variables: {
+					input: {
+						reportType: ReportType.WalkIn,
+						fileName: filename,
+						filterSummary: 'accounts-overview;format=csv',
+					},
+				},
 			})
 				.then(() => refetchReportLogs())
 				.catch(() => {});
@@ -1089,156 +1124,156 @@ export function ReportsPage() {
 					</p>
 				</div>
 				<div className="flex shrink-0 justify-start sm:justify-end">
-				<Popover open={downloadablesOpen} onOpenChange={setDownloadablesOpen}>
-					<PopoverTrigger asChild>
-						<button
-							type="button"
-							className="flex items-center gap-2 px-4 py-2.5 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-[var(--text-primary)] text-sm font-medium hover:border-[var(--primary-yellow)] hover:bg-[rgba(249,197,19,0.08)] transition-all focus:outline-none focus:border-[var(--primary-yellow)] focus:ring-[3px] focus:ring-[rgba(249,197,19,0.15)]"
-							aria-label="Downloadables: exports menu"
+					<Popover open={downloadablesOpen} onOpenChange={setDownloadablesOpen}>
+						<PopoverTrigger asChild>
+							<button
+								type="button"
+								className="flex items-center gap-2 px-4 py-2.5 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-[var(--text-primary)] text-sm font-medium hover:border-[var(--primary-yellow)] hover:bg-[rgba(249,197,19,0.08)] transition-all focus:outline-none focus:border-[var(--primary-yellow)] focus:ring-[3px] focus:ring-[rgba(249,197,19,0.15)]"
+								aria-label="Downloadables: exports menu"
+							>
+								<Download className="w-4 h-4 text-[var(--primary-yellow)]" />
+								Downloadables
+								<ChevronDown
+									className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${downloadablesOpen ? 'rotate-180' : ''}`}
+								/>
+							</button>
+						</PopoverTrigger>
+						<PopoverContent
+							align="end"
+							sideOffset={8}
+							className="w-[min(100vw-2rem,20rem)] rounded-xl border border-[rgba(255,255,255,0.12)] p-2 text-[var(--text-primary)] shadow-2xl ring-1 ring-black/25 !bg-[#16181f]"
 						>
-							<Download className="w-4 h-4 text-[var(--primary-yellow)]" />
-							Downloadables
-							<ChevronDown
-								className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${downloadablesOpen ? 'rotate-180' : ''}`}
-							/>
-						</button>
-					</PopoverTrigger>
-					<PopoverContent
-						align="end"
-						sideOffset={8}
-						className="w-[min(100vw-2rem,20rem)] rounded-xl border border-[rgba(255,255,255,0.12)] p-2 text-[var(--text-primary)] shadow-2xl ring-1 ring-black/25 !bg-[#16181f]"
-					>
-						<div className="flex flex-col gap-0.5">
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									void exportAllPdf();
-								}}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#fb923c]" aria-hidden />
-								<span>All (PDF, Legal)</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									exportAllCsv();
-								}}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
-								<span>All analytics (CSV)</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									void exportAnalyticsPdf();
-								}}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#fb923c]" aria-hidden />
-								<span>Analytics (PDF, Legal)</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									exportAnalyticsCsv();
-								}}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
-								<span>Analytics (CSV)</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									void exportRevenuePdf();
-								}}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#fb923c]" aria-hidden />
-								<span>Revenue (PDF)</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									exportRevenueCsv();
-								}}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
-								<span>Revenue (CSV)</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									void exportNearEndingMembershipPdf();
-								}}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#fb923c]" aria-hidden />
-								<span>Near-ending memberships (PDF)</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									exportNearEndingMembershipCsv();
-								}}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
-								<span>Near-ending memberships (CSV)</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									void exportWalkInPdf();
-								}}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#fb923c]" aria-hidden />
-								<span>Walk-in (PDF)</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									exportWalkInCsv();
-								}}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
-								<span>Walk-in (CSV)</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setDownloadablesOpen(false);
-									exportUsersToCSV();
-								}}
-								disabled={userExportLoading}
-								title={
-									userExportLoading
-										? 'Loading user data...'
-										: 'Download CSV of all members, coaches, and admins'
-								}
-								className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors disabled:pointer-events-none disabled:opacity-45"
-							>
-								<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
-								<span>{userExportLoading ? 'Loading users…' : 'All users (CSV)'}</span>
-							</button>
-						</div>
-					</PopoverContent>
-				</Popover>
+							<div className="flex flex-col gap-0.5">
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										void exportAllPdf();
+									}}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[var(--primary-yellow)]" aria-hidden />
+									<span>All (PDF, Legal)</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										exportAllCsv();
+									}}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
+									<span>All analytics (CSV)</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										void exportAnalyticsPdf();
+									}}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[var(--primary-yellow)]" aria-hidden />
+									<span>Analytics (PDF, Legal)</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										exportAnalyticsCsv();
+									}}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
+									<span>Analytics (CSV)</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										void exportRevenuePdf();
+									}}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[var(--primary-yellow)]" aria-hidden />
+									<span>Revenue (PDF)</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										exportRevenueCsv();
+									}}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
+									<span>Revenue (CSV)</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										void exportNearEndingMembershipPdf();
+									}}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[var(--primary-yellow)]" aria-hidden />
+									<span>Near-ending memberships (PDF)</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										exportNearEndingMembershipCsv();
+									}}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
+									<span>Near-ending memberships (CSV)</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										void exportWalkInPdf();
+									}}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[var(--primary-yellow)]" aria-hidden />
+									<span>Walk-in (PDF)</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										exportWalkInCsv();
+									}}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
+									<span>Walk-in (CSV)</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDownloadablesOpen(false);
+										exportUsersToCSV();
+									}}
+									disabled={userExportLoading}
+									title={
+										userExportLoading
+											? 'Loading user data...'
+											: 'Download CSV of all members, coaches, and admins'
+									}
+									className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors disabled:pointer-events-none disabled:opacity-45"
+								>
+									<Download className="h-4 w-4 shrink-0 text-[#4ade80]" aria-hidden />
+									<span>{userExportLoading ? 'Loading users…' : 'All users (CSV)'}</span>
+								</button>
+							</div>
+						</PopoverContent>
+					</Popover>
 				</div>
 			</div>
 
@@ -1613,9 +1648,7 @@ export function ReportsPage() {
 								type="button"
 								className="btn-secondary px-3 py-1.5 text-xs"
 								disabled={exportsPage >= totalExportPages - 1}
-								onClick={() =>
-									setExportsPage((prev) => Math.min(totalExportPages - 1, prev + 1))
-								}
+								onClick={() => setExportsPage((prev) => Math.min(totalExportPages - 1, prev + 1))}
 							>
 								Next
 							</button>

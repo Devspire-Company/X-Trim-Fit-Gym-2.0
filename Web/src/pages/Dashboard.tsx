@@ -14,6 +14,7 @@ import {
 	PieChart,
 	UserRound,
 	Zap,
+	ArrowUpRight,
 } from 'lucide-react';
 import {
 	GET_USERS,
@@ -115,7 +116,10 @@ export function DashboardPage() {
 	useEffect(() => {
 		if (attendanceData?.getAttendanceRecords?.records) {
 			setRecentAttendance(attendanceData.getAttendanceRecords.records);
-			console.log('[Dashboard] Initial attendance records loaded:', attendanceData.getAttendanceRecords.records.length);
+			console.log(
+				'[Dashboard] Initial attendance records loaded:',
+				attendanceData.getAttendanceRecords.records.length
+			);
 		}
 	}, [attendanceData]);
 
@@ -126,12 +130,16 @@ export function DashboardPage() {
 	}, []);
 
 	// Subscribe to new attendance records - using both data and onData for immediate updates
-	const { data: attendanceSubscriptionData, error: attendanceSubError, loading: attendanceSubLoading } = useSubscription(ATTENDANCE_RECORD_ADDED, {
+	const {
+		data: attendanceSubscriptionData,
+		error: attendanceSubError,
+		loading: attendanceSubLoading,
+	} = useSubscription(ATTENDANCE_RECORD_ADDED, {
 		skip: false, // Always subscribe
 		shouldResubscribe: true, // Re-subscribe if connection is lost
 		onData: ({ data: subData, error: subError }: { data?: unknown; error?: Error }) => {
-			console.log('[Dashboard Attendance Subscription] 📨 onData called:', { 
-				subData, 
+			console.log('[Dashboard Attendance Subscription] 📨 onData called:', {
+				subData,
 				subError,
 				hasData: !!subData,
 				dataKeys: subData ? Object.keys(subData as object) : [],
@@ -145,20 +153,32 @@ export function DashboardPage() {
 			// Try multiple paths to get the record
 			// Try multiple paths to extract the record
 			let newRecord = null;
-			
+
 			// Path 1: Standard GraphQL subscription response
-			const subDataObj = subData as { data?: { attendanceRecordAdded?: unknown }; attendanceRecordAdded?: unknown };
+			const subDataObj = subData as {
+				data?: { attendanceRecordAdded?: unknown };
+				attendanceRecordAdded?: unknown;
+			};
 			if (subDataObj?.data?.attendanceRecordAdded) {
 				newRecord = subDataObj.data.attendanceRecordAdded;
-				console.log('[Dashboard Attendance Subscription] ✅ Found record in subData.data.attendanceRecordAdded');
+				console.log(
+					'[Dashboard Attendance Subscription] ✅ Found record in subData.data.attendanceRecordAdded'
+				);
 			}
 			// Path 2: Direct property
 			else if (subDataObj?.attendanceRecordAdded) {
 				newRecord = subDataObj.attendanceRecordAdded;
-				console.log('[Dashboard Attendance Subscription] ✅ Found record in subData.attendanceRecordAdded');
+				console.log(
+					'[Dashboard Attendance Subscription] ✅ Found record in subData.attendanceRecordAdded'
+				);
 			}
 			// Path 3: Check if subData itself is the record
-			else if (subData && typeof subData === 'object' && 'id' in subData && 'personName' in subData) {
+			else if (
+				subData &&
+				typeof subData === 'object' &&
+				'id' in subData &&
+				'personName' in subData
+			) {
 				newRecord = subData;
 				console.log('[Dashboard Attendance Subscription] ✅ subData itself is the record');
 			}
@@ -167,12 +187,18 @@ export function DashboardPage() {
 				newRecord = (subData as any).attendanceRecordAdded;
 				console.log('[Dashboard Attendance Subscription] ✅ Found record in nested structure');
 			}
-			
+
 			console.log('[Dashboard Attendance Subscription] Extracted record:', newRecord);
-			console.log('[Dashboard Attendance Subscription] Full subData structure:', JSON.stringify(subData, null, 2));
-			
+			console.log(
+				'[Dashboard Attendance Subscription] Full subData structure:',
+				JSON.stringify(subData, null, 2)
+			);
+
 			if (newRecord) {
-				console.log('[Dashboard Attendance Subscription] ✅ New record received in onData:', newRecord);
+				console.log(
+					'[Dashboard Attendance Subscription] ✅ New record received in onData:',
+					newRecord
+				);
 				setSubscriptionStatus(`New record: ${newRecord.personName}`);
 				// Use functional update to ensure state is updated correctly
 				setRecentAttendance((prevRecords) => {
@@ -184,14 +210,25 @@ export function DashboardPage() {
 						console.log('[Dashboard Attendance Subscription] ⚠️ Record already exists, skipping');
 						return prevRecords;
 					}
-					console.log('[Dashboard Attendance Subscription] ✅ Adding new record to list (prev count:', prevRecords.length, ')');
+					console.log(
+						'[Dashboard Attendance Subscription] ✅ Adding new record to list (prev count:',
+						prevRecords.length,
+						')'
+					);
 					// Add new record at the beginning (most recent first) and force re-render
 					const updated = [newRecord, ...prevRecords].slice(0, 5);
-					console.log('[Dashboard Attendance Subscription] ✅ Updated list (new count:', updated.length, ')');
+					console.log(
+						'[Dashboard Attendance Subscription] ✅ Updated list (new count:',
+						updated.length,
+						')'
+					);
 					return updated;
 				});
 			} else {
-				console.warn('[Dashboard Attendance Subscription] ⚠️ No record found in data. Full subData:', JSON.stringify(subData, null, 2));
+				console.warn(
+					'[Dashboard Attendance Subscription] ⚠️ No record found in data. Full subData:',
+					JSON.stringify(subData, null, 2)
+				);
 			}
 		},
 		onError: (error) => {
@@ -213,7 +250,7 @@ export function DashboardPage() {
 			data: attendanceSubscriptionData,
 		};
 		console.log('[Dashboard Attendance Subscription] Status:', status);
-		
+
 		if (attendanceSubLoading) {
 			setSubscriptionStatus('Connecting...');
 		} else if (attendanceSubError) {
@@ -229,14 +266,19 @@ export function DashboardPage() {
 	useEffect(() => {
 		if (attendanceSubscriptionData?.attendanceRecordAdded) {
 			const newRecord = attendanceSubscriptionData.attendanceRecordAdded;
-			console.log('[Dashboard Attendance Subscription] ✅ New record from data property:', newRecord);
+			console.log(
+				'[Dashboard Attendance Subscription] ✅ New record from data property:',
+				newRecord
+			);
 			setSubscriptionStatus(`New record from data: ${newRecord.personName}`);
 			setRecentAttendance((prevRecords) => {
 				const exists = prevRecords.some(
 					(r) => r.id === newRecord.id && r.authDateTime === newRecord.authDateTime
 				);
 				if (exists) {
-					console.log('[Dashboard Attendance Subscription] ⚠️ Record already exists (from data property)');
+					console.log(
+						'[Dashboard Attendance Subscription] ⚠️ Record already exists (from data property)'
+					);
 					return prevRecords;
 				}
 				console.log('[Dashboard Attendance Subscription] ✅ Adding record from data property');
@@ -246,48 +288,69 @@ export function DashboardPage() {
 	}, [attendanceSubscriptionData]);
 
 	// Also subscribe to batch updates
-	const { data: batchSubscriptionData, error: batchSubError } = useSubscription(ATTENDANCE_UPDATED, {
-		skip: false,
-		onData: ({ data: subData, error: subError }: { data?: { data?: { attendanceUpdated?: AttendanceRecord[] } }; error?: Error }) => {
-			console.log('[Dashboard Attendance Batch Subscription] 📨 onData called:', { subData, subError });
-			if (subError) {
-				console.error('[Dashboard Attendance Batch Subscription] ❌ Error in onData:', subError);
-				return;
-			}
-			const batchData = subData?.data?.attendanceUpdated;
-			if (batchData && batchData.length > 0) {
-				const newRecords = batchData;
-				console.log('[Dashboard Attendance Batch Subscription] ✅ New records received:', newRecords.length);
-				setRecentAttendance((prevRecords) => {
-					// Merge new records, avoiding duplicates
-					const existingIds = new Set(
-						prevRecords.map((r) => `${r.id}-${r.authDateTime}`)
-					);
-					const uniqueNewRecords = newRecords.filter(
-						(r: AttendanceRecord) => !existingIds.has(`${r.id}-${r.authDateTime}`)
-					);
-					if (uniqueNewRecords.length > 0) {
-						console.log('[Dashboard Attendance Batch Subscription] ✅ Adding', uniqueNewRecords.length, 'new records');
-						return [...uniqueNewRecords, ...prevRecords].slice(0, 5); // Keep only 5 most recent
-					}
-					return prevRecords;
+	const { data: batchSubscriptionData, error: batchSubError } = useSubscription(
+		ATTENDANCE_UPDATED,
+		{
+			skip: false,
+			onData: ({
+				data: subData,
+				error: subError,
+			}: {
+				data?: { data?: { attendanceUpdated?: AttendanceRecord[] } };
+				error?: Error;
+			}) => {
+				console.log('[Dashboard Attendance Batch Subscription] 📨 onData called:', {
+					subData,
+					subError,
 				});
-			}
-		},
-		onError: (error) => {
-			console.error('[Dashboard Attendance Batch Subscription] ❌ Subscription error:', error);
-		},
-	});
+				if (subError) {
+					console.error('[Dashboard Attendance Batch Subscription] ❌ Error in onData:', subError);
+					return;
+				}
+				const batchData = subData?.data?.attendanceUpdated;
+				if (batchData && batchData.length > 0) {
+					const newRecords = batchData;
+					console.log(
+						'[Dashboard Attendance Batch Subscription] ✅ New records received:',
+						newRecords.length
+					);
+					setRecentAttendance((prevRecords) => {
+						// Merge new records, avoiding duplicates
+						const existingIds = new Set(prevRecords.map((r) => `${r.id}-${r.authDateTime}`));
+						const uniqueNewRecords = newRecords.filter(
+							(r: AttendanceRecord) => !existingIds.has(`${r.id}-${r.authDateTime}`)
+						);
+						if (uniqueNewRecords.length > 0) {
+							console.log(
+								'[Dashboard Attendance Batch Subscription] ✅ Adding',
+								uniqueNewRecords.length,
+								'new records'
+							);
+							return [...uniqueNewRecords, ...prevRecords].slice(0, 5); // Keep only 5 most recent
+						}
+						return prevRecords;
+					});
+				}
+			},
+			onError: (error) => {
+				console.error('[Dashboard Attendance Batch Subscription] ❌ Subscription error:', error);
+			},
+		}
+	);
 
 	// Also handle batch subscription data property
 	useEffect(() => {
-		if (batchSubscriptionData?.attendanceUpdated && batchSubscriptionData.attendanceUpdated.length > 0) {
+		if (
+			batchSubscriptionData?.attendanceUpdated &&
+			batchSubscriptionData.attendanceUpdated.length > 0
+		) {
 			const newRecords = batchSubscriptionData.attendanceUpdated;
-			console.log('[Dashboard Attendance Batch Subscription] ✅ New records from data property:', newRecords.length);
+			console.log(
+				'[Dashboard Attendance Batch Subscription] ✅ New records from data property:',
+				newRecords.length
+			);
 			setRecentAttendance((prevRecords) => {
-				const existingIds = new Set(
-					prevRecords.map((r) => `${r.id}-${r.authDateTime}`)
-				);
+				const existingIds = new Set(prevRecords.map((r) => `${r.id}-${r.authDateTime}`));
 				const uniqueNewRecords = newRecords.filter(
 					(r) => !existingIds.has(`${r.id}-${r.authDateTime}`)
 				);
@@ -317,15 +380,16 @@ export function DashboardPage() {
 	// Only block on members and coaches loading - analytics can load in background
 	const loading = membersLoading || coachesLoading;
 	const error = null; // Handle errors separately if needed
-	
+
 	// Use subscription data if available, otherwise fall back to query data
 	const data = {
 		members: mergedMembersList,
 		coaches: coachesSubscriptionData?.usersUpdated || coachesData?.getUsers || [],
 	};
-	
+
 	// Use subscription data for analytics if available, otherwise fall back to query data
-	const analytics = revenueSubscriptionData?.revenueSummaryUpdated || analyticsData?.getRevenueSummary;
+	const analytics =
+		revenueSubscriptionData?.revenueSummaryUpdated || analyticsData?.getRevenueSummary;
 
 	// Show loading state
 	if (loading) {
@@ -345,18 +409,27 @@ export function DashboardPage() {
 			<div className="flex items-center justify-center min-h-[400px]">
 				<div className="text-center">
 					<div className="text-red-500 mb-4">
-						<svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+						<svg
+							className="w-16 h-16 mx-auto"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
 						</svg>
 					</div>
-					<h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">Unable to Load Dashboard</h2>
+					<h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">
+						Unable to Load Dashboard
+					</h2>
 					<p className="text-[var(--text-secondary)] mb-4">
 						{(error as Error | null)?.message || 'Failed to connect to the server'}
 					</p>
-					<button 
-						onClick={() => window.location.reload()} 
-						className="btn-primary"
-					>
+					<button onClick={() => window.location.reload()} className="btn-primary">
 						Retry
 					</button>
 				</div>
@@ -375,12 +448,14 @@ export function DashboardPage() {
 			name: `${m.firstName} ${m.lastName}`,
 			email: m.email,
 			phone: m.phoneNumber || 'N/A',
-			membership: isActive ? (membershipTransaction?.membership?.name || 'No Plan') : 'No Plan',
+			membership: isActive ? membershipTransaction?.membership?.name || 'No Plan' : 'No Plan',
 			status: isActive ? 'Active' : 'Inactive',
-			joinDate: m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'N/A',
+			joinDate: m.createdAt
+				? new Date(m.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+				: 'N/A',
 			avatar: `${m.firstName?.[0] || ''}${m.lastName?.[0] || ''}`,
 			// Only include price if transaction is ACTIVE
-			monthlyPrice: isActive ? (membershipTransaction?.membership?.monthlyPrice || 0) : 0,
+			monthlyPrice: isActive ? membershipTransaction?.membership?.monthlyPrice || 0 : 0,
 			progress: {
 				weightLost: 0,
 				workoutsCompleted: 0,
@@ -404,7 +479,7 @@ export function DashboardPage() {
 	// Calculate stats
 	const totalMembers = members.length;
 	const totalCoaches = coaches.length;
-	
+
 	const monthlyRevenue = analytics?.totalRevenue || 0;
 	const membershipRev = analytics?.membershipSubscriptionRevenue ?? 0;
 	const walkInRev = analytics?.walkInRevenue ?? 0;
@@ -415,37 +490,53 @@ export function DashboardPage() {
 	// Recent members (last 3) - sort by join date
 	const recentMembers = [...members]
 		.sort((a, b) => {
-			const dateA = new Date(data.members.find((m: any) => m.id === a.id)?.createdAt || 0).getTime();
-			const dateB = new Date(data.members.find((m: any) => m.id === b.id)?.createdAt || 0).getTime();
+			const dateA = new Date(
+				data.members.find((m: any) => m.id === a.id)?.createdAt || 0
+			).getTime();
+			const dateB = new Date(
+				data.members.find((m: any) => m.id === b.id)?.createdAt || 0
+			).getTime();
 			return dateB - dateA;
 		})
 		.slice(0, 3);
 
 	// Membership distribution - group by actual membership names
-	const membershipTypes = [...new Set(members.map(m => m.membership))];
+	const membershipTypes = [...new Set(members.map((m) => m.membership))];
 	const membershipDistribution: Record<string, number> = {};
-	membershipTypes.forEach(type => {
+	membershipTypes.forEach((type) => {
 		membershipDistribution[type] = members.filter((m) => m.membership === type).length;
 	});
 
 	return (
-		<div className="space-y-6">
+		<div className="dashboard-page space-y-6">
 			{/* Welcome Section */}
-			<div className="welcome-section relative rounded-[20px] overflow-hidden p-10">
+			<div className="welcome-section">
 				<div className="welcome-bg-image"></div>
-				<div className="welcome-content relative z-10 flex items-center justify-between">
-					<div>
-						<h1 className="text-[2.2rem] font-bold mb-2 gradient-text">Welcome Back, Admin!</h1>
-						<p className="text-[var(--text-secondary)] text-[1.05rem]">
+				<div className="welcome-content">
+					<div className="welcome-copy">
+						<div className="welcome-kicker">
+							<span>01</span> Command floor
+						</div>
+						<h1>
+							Welcome back.
+							<br />
+							<strong>Admin.</strong>
+						</h1>
+						<p>
 							Manage your gym operations, members, coaches, and track your business performance.
 						</p>
+					</div>
+					<div className="welcome-mark" aria-hidden="true">
+						<span>X</span>
+						<small>Train / Track / Transform</small>
 					</div>
 				</div>
 			</div>
 
 			{/* Stats Grid */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+			<div className="dashboard-stat-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 				<StatCard
+					index="01"
 					icon={PhilippinePeso}
 					title="Total revenue"
 					value={`₱${monthlyRevenue.toLocaleString()}`}
@@ -453,6 +544,7 @@ export function DashboardPage() {
 					changeType="positive"
 				/>
 				<StatCard
+					index="02"
 					icon={UserCog}
 					title="Total Coaches"
 					value={totalCoaches}
@@ -460,6 +552,7 @@ export function DashboardPage() {
 					changeType="neutral"
 				/>
 				<StatCard
+					index="03"
 					icon={Users}
 					title="Total Members"
 					value={totalMembers}
@@ -467,6 +560,7 @@ export function DashboardPage() {
 					changeType="positive"
 				/>
 				<StatCard
+					index="04"
 					icon={UserRound}
 					title="Total walk-ins"
 					value={totalWalkInTimeIns}
@@ -478,6 +572,7 @@ export function DashboardPage() {
 					changeType="positive"
 				/>
 				<StatCard
+					index="05"
 					icon={CreditCard}
 					title="Active Subscriptions"
 					value={activeSubscriptions}
@@ -489,21 +584,26 @@ export function DashboardPage() {
 			{/* Revenue Overview Chart - Full Width */}
 			<div className="section-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[18px] p-7 backdrop-blur-md">
 				<h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-[var(--text-primary)] font-['Poppins']">
-					<BarChart3 className="inline w-5 h-5 text-[var(--primary-yellow)] mr-1.5 align-[-0.125em]" aria-hidden />
+					<BarChart3
+						className="inline w-5 h-5 text-[var(--primary-yellow)] mr-1.5 align-[-0.125em]"
+						aria-hidden
+					/>
 					Revenue Overview
 				</h2>
-				
+
 				{/* Revenue Chart */}
 				{analytics?.revenueByPeriod && analytics.revenueByPeriod.length > 0 ? (
 					<div className="mb-6">
 						<RevenueChart
-							data={analytics.revenueByPeriod as Array<{
-								period: string;
-								revenue: number;
-								count: number;
-								walkInRevenue?: number;
-								walkInCount?: number;
-							}>}
+							data={
+								analytics.revenueByPeriod as Array<{
+									period: string;
+									revenue: number;
+									count: number;
+									walkInRevenue?: number;
+									walkInCount?: number;
+								}>
+							}
 						/>
 					</div>
 				) : (
@@ -546,8 +646,7 @@ export function DashboardPage() {
 					<div className="flex flex-col">
 						<span className="text-sm text-[var(--text-secondary)] mb-1">Avg. sub / member</span>
 						<span className="text-lg font-semibold text-[var(--text-primary)] font-['Inter',ui-sans-serif,system-ui,sans-serif] tabular-nums">
-							₱
-							{activeSubscriptions > 0 ? Math.round(membershipRev / activeSubscriptions) : 0}
+							₱{activeSubscriptions > 0 ? Math.round(membershipRev / activeSubscriptions) : 0}
 						</span>
 					</div>
 				</div>
@@ -573,13 +672,19 @@ export function DashboardPage() {
 					<h2 className="text-xl font-semibold flex items-center gap-2 text-[var(--text-primary)] font-['Poppins']">
 						<Clock className="w-5 h-5 text-[var(--primary-yellow)]" />
 						Recent Attendance Logs
-						<span className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-2" title="Real-time updates active"></span>
+						<span
+							className="w-2 h-2 bg-green-500 rounded-full animate-pulse ml-2"
+							title="Real-time updates active"
+						></span>
 						{(attendanceSubError || batchSubError) && (
 							<span className="text-xs text-red-400 ml-2" title="Subscription error">
 								⚠️ Connection issue
 							</span>
 						)}
-						<span className="text-xs text-[var(--text-secondary)] ml-2" title={`Status: ${subscriptionStatus}`}>
+						<span
+							className="text-xs text-[var(--text-secondary)] ml-2"
+							title={`Status: ${subscriptionStatus}`}
+						>
 							({subscriptionStatus})
 						</span>
 					</h2>
@@ -624,7 +729,10 @@ export function DashboardPage() {
 											{record.authTime}
 										</span>
 										<span className="flex items-center gap-1">
-											<Calendar className="inline w-3.5 h-3.5 mr-1 align-[-0.125em] text-[var(--primary-yellow)]" aria-hidden />
+											<Calendar
+												className="inline w-3.5 h-3.5 mr-1 align-[-0.125em] text-[var(--primary-yellow)]"
+												aria-hidden
+											/>
 											{record.authDate}
 										</span>
 										{record.deviceName && (
@@ -675,7 +783,7 @@ export function DashboardPage() {
 								key={member.id}
 								className="member-item flex items-center gap-4 p-4 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)]"
 							>
-								<div className="member-avatar w-12 h-12 rounded-full bg-gradient-to-br from-[var(--primary-red)] to-[var(--primary-yellow)] flex items-center justify-center font-semibold text-white text-base flex-shrink-0">
+								<div className="member-avatar w-12 h-12 flex items-center justify-center font-semibold text-base flex-shrink-0">
 									{member.avatar}
 								</div>
 								<div className="member-info flex-1">
@@ -712,7 +820,7 @@ export function DashboardPage() {
 								key={coach.id}
 								className="coach-item flex items-center gap-4 p-4 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)]"
 							>
-								<div className="coach-avatar w-12 h-12 rounded-full bg-gradient-to-br from-[var(--primary-red)] to-[var(--primary-yellow)] flex items-center justify-center font-semibold text-white text-base flex-shrink-0">
+								<div className="coach-avatar w-12 h-12 flex items-center justify-center font-semibold text-base flex-shrink-0">
 									{coach.avatar}
 								</div>
 								<div className="coach-info flex-1">
@@ -733,7 +841,10 @@ export function DashboardPage() {
 			{/* Membership Distribution - Full Width */}
 			<div className="section-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[18px] p-7 backdrop-blur-md">
 				<h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-[var(--text-primary)] font-['Poppins']">
-					<PieChart className="inline w-5 h-5 text-[var(--primary-yellow)] mr-1.5 align-[-0.125em]" aria-hidden />
+					<PieChart
+						className="inline w-5 h-5 text-[var(--primary-yellow)] mr-1.5 align-[-0.125em]"
+						aria-hidden
+					/>
 					Membership Distribution
 				</h2>
 				<div className="membership-distribution space-y-3">
@@ -776,12 +887,14 @@ export function DashboardPage() {
 }
 
 function StatCard({
+	index,
 	icon: Icon,
 	title,
 	value,
 	change,
 	changeType,
 }: {
+	index: string;
 	icon: typeof Users;
 	title: string;
 	value: string | number;
@@ -789,20 +902,17 @@ function StatCard({
 	changeType: 'positive' | 'negative' | 'neutral';
 }) {
 	return (
-		<div className="stat-card bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[18px] p-7 backdrop-blur-md">
-			<div className="flex items-center justify-between mb-6">
-				<div className="stat-icon w-14 h-14 rounded-[14px] bg-gradient-to-br from-[rgba(249,197,19,0.15)] to-[rgba(228,30,38,0.1)] flex items-center justify-center text-[1.6rem] text-[var(--primary-yellow)]">
+		<div className="stat-card">
+			<div className="stat-card-head">
+				<span className="stat-index">{index}</span>
+				<div className="stat-icon">
 					<Icon className="w-6 h-6" />
 				</div>
 			</div>
-			<h3 className="text-[0.85rem] font-medium text-[var(--text-secondary)] mb-2 uppercase">
-				{title}
-			</h3>
-			<div className="stat-value text-[2.2rem] font-bold tracking-tight text-[var(--text-primary)] mb-2 font-['Inter',ui-sans-serif,system-ui,sans-serif] tabular-nums">
-				{value}
-			</div>
+			<h3>{title}</h3>
+			<div className="stat-value">{value}</div>
 			<div
-				className={`stat-change text-[0.8rem] font-semibold flex items-center gap-1 ${
+				className={`stat-change ${
 					changeType === 'positive'
 						? 'text-[var(--primary-yellow)]'
 						: changeType === 'negative'
@@ -826,12 +936,12 @@ function QuickActionButton({
 	label: string;
 }) {
 	return (
-		<Link
-			to={href}
-			className="quick-action-btn flex flex-row items-center justify-center gap-3 p-5 rounded-xl bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] text-[var(--text-primary)] text-[0.9rem] font-medium"
-		>
-			<Icon className="w-5 h-5 text-[var(--primary-yellow)] flex-shrink-0" />
-			<span className="whitespace-nowrap">{label}</span>
+		<Link to={href} className="quick-action-btn">
+			<span className="quick-action-icon">
+				<Icon className="w-5 h-5" />
+			</span>
+			<span>{label}</span>
+			<ArrowUpRight className="quick-action-arrow" />
 		</Link>
 	);
 }
@@ -847,9 +957,7 @@ function RevenueChart({
 		walkInCount?: number;
 	}>;
 }) {
-	const subDaily = data.map((item) =>
-		Math.max(0, item.revenue - (item.walkInRevenue ?? 0)),
-	);
+	const subDaily = data.map((item) => Math.max(0, item.revenue - (item.walkInRevenue ?? 0)));
 	const walkDaily = data.map((item) => item.walkInRevenue ?? 0);
 
 	const chartData = {
@@ -899,12 +1007,12 @@ function RevenueChart({
 				titleFont: {
 					size: 14,
 					weight: 600,
-					family: "'Poppins', sans-serif",
+					family: "'Barlow Condensed', sans-serif",
 				},
 				bodyFont: {
 					size: 13,
 					weight: 500,
-					family: "'Inter', sans-serif",
+					family: "'Manrope', sans-serif",
 				},
 				callbacks: {
 					afterBody: function (items: any[]) {
@@ -929,7 +1037,7 @@ function RevenueChart({
 					color: 'rgba(184, 188, 200, 0.8)',
 					font: {
 						size: 11,
-						family: "'Inter', sans-serif",
+						family: "'Manrope', sans-serif",
 					},
 				},
 			},

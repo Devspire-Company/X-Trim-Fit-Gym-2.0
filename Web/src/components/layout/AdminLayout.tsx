@@ -40,7 +40,7 @@ export function AdminLayout() {
 	const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 	const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 	const [sidebarExpanded, setSidebarExpanded] = useState(false);
-	const [expandedSidebarWidth, setExpandedSidebarWidth] = useState(280); // Default width
+	const [expandedSidebarWidth, setExpandedSidebarWidth] = useState(268); // Default width
 	const sidebarRef = useRef<HTMLElement>(null);
 	const navigate = useNavigate();
 	const { signOut } = useClerk();
@@ -60,10 +60,11 @@ export function AdminLayout() {
 		tempElement.style.position = 'absolute';
 		tempElement.style.fontSize = '14px';
 		tempElement.style.fontWeight = '500';
-		tempElement.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+		tempElement.style.fontFamily =
+			'-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 		tempElement.style.whiteSpace = 'nowrap';
 		document.body.appendChild(tempElement);
-		
+
 		// Find the longest label width
 		let maxWidth = 0;
 		navItems.forEach((item) => {
@@ -73,18 +74,18 @@ export function AdminLayout() {
 				maxWidth = width;
 			}
 		});
-		
+
 		// Clean up
 		document.body.removeChild(tempElement);
-		
+
 		// Calculate total width: icon (20px) + gap (12px) + text width + padding (48px total) + extra space (24px)
 		const iconWidth = 20; // w-5 icon = 20px
 		const gap = 12; // gap between icon and text
 		const padding = 48; // 1.2rem left + 1.2rem right = 24px each = 48px total
 		const extraSpace = 24; // buffer for safety and spacing
-		
+
 		const calculatedWidth = iconWidth + gap + maxWidth + padding + extraSpace;
-		
+
 		// Set width with minimum of 240px and round up to nearest 10 for clean numbers
 		setExpandedSidebarWidth(Math.max(240, Math.ceil(calculatedWidth / 10) * 10));
 	}, []);
@@ -118,18 +119,17 @@ export function AdminLayout() {
 
 	return (
 		<div
-			className={`min-h-screen ${sidebarExpanded ? 'sidebar-expanded' : ''}`}
+			className={`admin-shell min-h-screen ${sidebarExpanded ? 'sidebar-expanded' : ''}`}
 			style={
 				{
-					background: 'linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%)',
-					'--sidebar-width': sidebarExpanded ? `${expandedSidebarWidth}px` : '90px',
+					'--sidebar-width': sidebarExpanded ? `${expandedSidebarWidth}px` : '76px',
 					'--sidebar-expanded-width': `${expandedSidebarWidth}px`,
 				} as React.CSSProperties
 			}
 		>
 			{/* Top Navbar */}
-			<nav className="top-navbar fixed top-0 left-0 right-0 h-20 bg-[rgba(19,22,31,0.95)] backdrop-blur-md border-b border-[rgba(255,255,255,0.08)] z-50">
-				<div className="flex items-center justify-between h-full px-10">
+			<nav className="top-navbar fixed top-0 left-0 right-0 z-50">
+				<div className="flex items-center justify-between h-full px-6 md:px-8">
 					<div className="logo flex items-center gap-3 h-10">
 						<img
 							src="/logo.png"
@@ -137,15 +137,16 @@ export function AdminLayout() {
 							className="h-full w-auto object-contain cursor-pointer"
 							onClick={() => navigate('/dashboard')}
 						/>
+						<span className="brand-division hidden sm:block">Operations</span>
 					</div>
 					<div className="nav-right flex items-center gap-4">
 						<SystemNotificationBell />
 						<div className="relative">
 							<button
 								onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-								className="user-profile flex items-center gap-3 px-2 py-2.5 rounded-xl bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)]"
+								className="user-profile flex items-center gap-3 px-2 py-2"
 							>
-								<div className="user-avatar w-9 h-9 rounded-[10px] bg-gradient-to-br from-[var(--primary-red)] to-[var(--primary-yellow)] flex items-center justify-center font-bold text-white text-sm">
+								<div className="user-avatar w-9 h-9 flex items-center justify-center font-bold text-sm">
 									{user?.firstName?.[0] || 'A'}
 									{user?.lastName?.[0] || 'D'}
 								</div>
@@ -186,12 +187,14 @@ export function AdminLayout() {
 			</nav>
 
 			{/* Sidebar */}
-			<aside 
-				ref={sidebarRef} 
+			<aside
+				ref={sidebarRef}
 				className={`sidebar ${sidebarExpanded ? 'expanded' : ''}`}
-				style={{
-					width: sidebarExpanded ? `${expandedSidebarWidth}px` : '90px',
-				} as React.CSSProperties}
+				style={
+					{
+						width: sidebarExpanded ? `${expandedSidebarWidth}px` : '76px',
+					} as React.CSSProperties
+				}
 			>
 				<nav>
 					<ul className="sidebar-menu">
@@ -201,7 +204,7 @@ export function AdminLayout() {
 								<li key={item.path}>
 									<Link
 										to={item.path}
-										className={`sidebar-menu a ${isActive(item.path) ? 'active' : ''}`}
+										className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
 									>
 										<Icon className="w-5 h-5" />
 										<span>{item.label}</span>
@@ -215,7 +218,9 @@ export function AdminLayout() {
 
 			{/* Main Content */}
 			<main className="main-content">
-				<Outlet />
+				<div key={location.pathname} className="page-transition">
+					<Outlet />
+				</div>
 			</main>
 
 			{/* Logout Modal */}

@@ -1,7 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { X, Check, Calendar, CreditCard, Loader2 } from 'lucide-react';
-import { GET_ACTIVE_MEMBERSHIPS, DIRECT_SUBSCRIBE_MEMBER, GET_USERS } from '@/graphql/operations/index';
+import {
+	GET_ACTIVE_MEMBERSHIPS,
+	DIRECT_SUBSCRIBE_MEMBER,
+	GET_USERS,
+} from '@/graphql/operations/index';
 import { DurationType } from '@/graphql/generated/graphql';
 import { useAppDispatch } from '@/store/hooks';
 import { addToast } from '@/store/slices/uiSlice';
@@ -33,7 +37,10 @@ export function DirectSubscribeModal({
 	});
 
 	const selectedPlan = useMemo(
-		() => (membershipsData?.getMemberships || []).find((m: { id: string }) => m.id === selectedMembershipId),
+		() =>
+			(membershipsData?.getMemberships || []).find(
+				(m: { id: string }) => m.id === selectedMembershipId
+			),
 		[membershipsData, selectedMembershipId]
 	);
 
@@ -152,7 +159,7 @@ export function DirectSubscribeModal({
 					0,
 					0,
 					0
-			  )
+				)
 			: new Date();
 		if (Number.isNaN(start.getTime())) return null;
 
@@ -195,10 +202,10 @@ export function DirectSubscribeModal({
 						<div
 							className="modal-success-icon-large"
 							style={{
-								background: 'linear-gradient(135deg, var(--primary-red), var(--primary-yellow))',
+								background: 'var(--primary-yellow)',
 							}}
 						>
-							<CreditCard size={48} style={{ color: 'white' }} />
+							<CreditCard size={48} style={{ color: '#090b0d' }} />
 						</div>
 					</div>
 
@@ -291,7 +298,10 @@ export function DirectSubscribeModal({
 								Optional: override length or start date for walk-ins / legacy members.
 							</p>
 							<div>
-								<label className="text-xs text-[var(--text-secondary)] block mb-1" htmlFor="custom-months">
+								<label
+									className="text-xs text-[var(--text-secondary)] block mb-1"
+									htmlFor="custom-months"
+								>
 									{selectedPlanIsDaily ? 'Duration (calendar days)' : 'Duration (months)'}
 								</label>
 								<input

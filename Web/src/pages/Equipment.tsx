@@ -112,9 +112,7 @@ function parseLegacyArchiveMeta(rawNotes: string | null | undefined) {
 
 function buildLegacyArchivedNotes(reason: string, cleanNotes: string | null) {
 	const marker = `${LEGACY_ARCHIVE_PREFIX}${encodeURIComponent(reason)}|${new Date().toISOString()}`;
-	return cleanNotes && cleanNotes.trim().length > 0
-		? `${marker}\n${cleanNotes.trim()}`
-		: marker;
+	return cleanNotes && cleanNotes.trim().length > 0 ? `${marker}\n${cleanNotes.trim()}` : marker;
 }
 
 function formatDateManila(dateValue: string | null | undefined) {
@@ -147,7 +145,9 @@ async function loadImageAsDataUrl(path: string): Promise<string | null> {
 	}
 }
 
-async function getImageDimensions(dataUrl: string): Promise<{ width: number; height: number } | null> {
+async function getImageDimensions(
+	dataUrl: string
+): Promise<{ width: number; height: number } | null> {
 	return await new Promise((resolve) => {
 		const img = new Image();
 		img.onload = () => {
@@ -335,7 +335,7 @@ function formatUsageScheduleLabel(
 						year: 'numeric',
 						month: 'short',
 						day: 'numeric',
-				  })
+					})
 		: 'Scheduled';
 
 	const start = String(startTime || '').trim();
@@ -405,7 +405,9 @@ function getCurrentManilaEquipmentWindowVariables(): {
 }
 
 function parseAmPmToMinutes(value: string | null | undefined): number {
-	const raw = String(value || '').trim().toUpperCase();
+	const raw = String(value || '')
+		.trim()
+		.toUpperCase();
 	const m = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
 	if (!m) return 0;
 	let hours = Number(m[1]);
@@ -466,9 +468,8 @@ export function EquipmentPage() {
 		import.meta.env.VITE_ENABLE_MODERN_ARCHIVE_API === 'false'
 	);
 	const [useEnhancedAvailabilityQuery, setUseEnhancedAvailabilityQuery] = useState(true);
-	const [archiveReasonOption, setArchiveReasonOption] = useState<(typeof ARCHIVE_REASON_OPTIONS)[number]>(
-		'Damaged beyond repair'
-	);
+	const [archiveReasonOption, setArchiveReasonOption] =
+		useState<(typeof ARCHIVE_REASON_OPTIONS)[number]>('Damaged beyond repair');
 	const [archiveReasonOther, setArchiveReasonOther] = useState('');
 	const [isStockModalOpen, setIsStockModalOpen] = useState(false);
 	const [stockTarget, setStockTarget] = useState<any | null>(null);
@@ -479,22 +480,30 @@ export function EquipmentPage() {
 	const [equipmentActionLogs, setEquipmentActionLogs] = useState<EquipmentActionLog[]>(() =>
 		typeof window === 'undefined' ? [] : readEquipmentActionLogs()
 	);
-	const pendingCreateActionRef = useRef<{ equipmentName: string; status: EquipmentStatus } | null>(null);
+	const pendingCreateActionRef = useRef<{ equipmentName: string; status: EquipmentStatus } | null>(
+		null
+	);
 	const pendingUpdateActionRef = useRef<{
 		equipmentId: string;
 		equipmentName: string;
 		fromStatus: EquipmentStatus;
 		toStatus: EquipmentStatus;
 	} | null>(null);
-	const pendingArchiveActionRef = useRef<{ equipmentId: string; equipmentName: string; reason: string } | null>(
+	const pendingArchiveActionRef = useRef<{
+		equipmentId: string;
+		equipmentName: string;
+		reason: string;
+	} | null>(null);
+	const pendingRestoreActionRef = useRef<{ equipmentId: string; equipmentName: string } | null>(
 		null
 	);
-	const pendingRestoreActionRef = useRef<{ equipmentId: string; equipmentName: string } | null>(null);
 	const actorLabel =
 		[currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ').trim() ||
 		currentUser?.email ||
 		'Admin';
-	const recordEquipmentAction = (payload: Omit<EquipmentActionLog, 'id' | 'createdAt' | 'actionBy'>) => {
+	const recordEquipmentAction = (
+		payload: Omit<EquipmentActionLog, 'id' | 'createdAt' | 'actionBy'>
+	) => {
 		const updated = appendEquipmentActionLog({
 			...payload,
 			actionBy: actorLabel,
@@ -609,10 +618,16 @@ export function EquipmentPage() {
 			return;
 		}
 		if (useEnhancedAvailabilityQuery) {
-			await enhancedQuery.refetch({ includeArchived: true, ...getCurrentManilaEquipmentWindowVariables() });
+			await enhancedQuery.refetch({
+				includeArchived: true,
+				...getCurrentManilaEquipmentWindowVariables(),
+			});
 			return;
 		}
-		await modernQuery.refetch({ includeArchived: true, ...getCurrentManilaEquipmentWindowVariables() });
+		await modernQuery.refetch({
+			includeArchived: true,
+			...getCurrentManilaEquipmentWindowVariables(),
+		});
 	};
 	const archiveFiltered =
 		viewTab === 'ARCHIVED'
@@ -1028,17 +1043,17 @@ export function EquipmentPage() {
 				});
 				await refreshEquipmentList();
 			} else {
-			await adjustEquipmentStock({
-				variables: {
-					input: {
-						id: item.id,
-						change,
-						reason:
-							customReason?.trim() ||
-							(change > 0 ? 'Stock in (quick action)' : 'Stock out (quick action)'),
+				await adjustEquipmentStock({
+					variables: {
+						input: {
+							id: item.id,
+							change,
+							reason:
+								customReason?.trim() ||
+								(change > 0 ? 'Stock in (quick action)' : 'Stock out (quick action)'),
+						},
 					},
-				},
-			});
+				});
 			}
 			dispatch(
 				addToast({
@@ -1118,16 +1133,18 @@ export function EquipmentPage() {
 		const totalCount = reportRows.length;
 		const currentCount = reportRows.filter((eq) => !eq.isArchived).length;
 		const archivedCount = reportRows.filter((eq) => !!eq.isArchived).length;
-		const availableCount = reportRows.filter((eq) => eq.status === EquipmentStatus.Available).length;
+		const availableCount = reportRows.filter(
+			(eq) => eq.status === EquipmentStatus.Available
+		).length;
 		const damagedCount = reportRows.filter((eq) => eq.status === EquipmentStatus.Damaged).length;
 		const maintenanceCount = reportRows.filter(
 			(eq) => eq.status === EquipmentStatus.Undermaintenance
 		).length;
 		const timelineEntries = buildEquipmentMasterTimelineEntries(reportRows, equipmentActionLogs);
-		const exportedByLabel = [currentUser?.firstName, currentUser?.lastName]
-			.filter(Boolean)
-			.join(' ')
-			.trim() || currentUser?.email || 'System';
+		const exportedByLabel =
+			[currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ').trim() ||
+			currentUser?.email ||
+			'System';
 
 		const doc = new jsPDF({ orientation: 'landscape' });
 		const interReady = await tryRegisterInterFont(doc);
@@ -1188,16 +1205,18 @@ export function EquipmentPage() {
 			doc.text(title, 14, startY - 3);
 			autoTable(doc, {
 				startY,
-				head: [[
-					'Name',
-					'Record State',
-					'Added Date',
-					conditionDateLabel,
-					'Archived Date',
-					'Archive Reason',
-					'Acquired Date',
-					'Notes',
-				]],
+				head: [
+					[
+						'Name',
+						'Record State',
+						'Added Date',
+						conditionDateLabel,
+						'Archived Date',
+						'Archive Reason',
+						'Acquired Date',
+						'Notes',
+					],
+				],
 				body:
 					rows.length > 0
 						? rows.map((eq) => [
@@ -1209,7 +1228,7 @@ export function EquipmentPage() {
 								eq.archiveReason || '-',
 								formatDateManila(eq.acquiredAt),
 								eq.notes || '-',
-						  ])
+							])
 						: [['-', '-', '-', '-', '-', '-', '-', 'No equipment in this condition']],
 				styles: { fontSize: 8 },
 				headStyles: { fillColor: [249, 197, 19], textColor: [20, 20, 20] },
@@ -1226,7 +1245,9 @@ export function EquipmentPage() {
 		renderConditionTable('Damaged Equipment', EquipmentStatus.Damaged, 'Damaged since');
 		autoTable(doc, {
 			startY: ((doc as any).lastAutoTable?.finalY ?? 52) + 10,
-			head: [['Equipment', 'Action', 'From status', 'To status', 'Reason/Notes', 'Changed by', 'Date']],
+			head: [
+				['Equipment', 'Action', 'From status', 'To status', 'Reason/Notes', 'Changed by', 'Date'],
+			],
 			body:
 				timelineEntries.length > 0
 					? timelineEntries.map((entry) => [
@@ -1237,7 +1258,7 @@ export function EquipmentPage() {
 							entry.reason,
 							entry.changedBy,
 							formatDateManila(entry.changedAt),
-					  ])
+						])
 					: [['-', 'No action history recorded yet', '-', '-', '-', '-', '-']],
 			styles: { fontSize: 8 },
 			headStyles: { fillColor: [249, 197, 19], textColor: [20, 20, 20] },
@@ -1297,7 +1318,15 @@ export function EquipmentPage() {
 				{ title: 'Equipment roster (all records)', head: rosterHead, rows: rosterRows },
 				{
 					title: 'Activity timeline',
-					head: ['Equipment', 'Action', 'From status', 'To status', 'Reason/Notes', 'Changed by', 'Date'],
+					head: [
+						'Equipment',
+						'Action',
+						'From status',
+						'To status',
+						'Reason/Notes',
+						'Changed by',
+						'Date',
+					],
 					rows:
 						timelineEntries.length > 0
 							? timelineEntries.map((entry) => [
@@ -1308,7 +1337,7 @@ export function EquipmentPage() {
 									entry.reason,
 									entry.changedBy,
 									formatDateManila(entry.changedAt),
-							  ])
+								])
 							: [['-', 'No action history recorded yet', '-', '-', '-', '-', '-']],
 				},
 			],
@@ -1362,7 +1391,7 @@ export function EquipmentPage() {
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
-					<div className="inline-flex items-center rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] p-1">
+					<div className="segmented-control inline-flex items-center">
 						<button
 							type="button"
 							onClick={() => setViewTab('CURRENT')}
@@ -1416,7 +1445,7 @@ export function EquipmentPage() {
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				{visibleList.map((item) => (
+				{visibleList.map((item) =>
 					(() => {
 						const availabilityMeta = getAvailabilityMeta(item);
 						const statusKey = String(item.status || '').toUpperCase();
@@ -1435,180 +1464,170 @@ export function EquipmentPage() {
 									.slice(0, 2)
 							: [];
 						return (
-					<div
-						key={item.id}
-						className={`group flex h-full min-h-[31rem] flex-col overflow-hidden rounded-[22px] border bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur-md transition hover:-translate-y-0.5 ${
-							isUnavailable
-								? 'border-[rgba(148,163,184,0.22)] opacity-85 hover:border-[rgba(148,163,184,0.35)]'
-								: 'border-[rgba(249,197,19,0.22)] hover:border-[rgba(249,197,19,0.45)]'
-						}`}
-					>
-						<div
-							className="h-52 cursor-pointer bg-[var(--bg-darker)] md:h-56"
-							onClick={() => handleView(item)}
-						>
-							<img
-								src={item.imageUrl}
-								alt={item.name}
-								className="w-full h-full object-cover"
-							/>
-						</div>
-						<div className="flex h-full flex-col p-5">
 							<div
-								className="mb-2 cursor-pointer"
-								onClick={() => handleView(item)}
+								key={item.id}
+								className={`equipment-card group flex h-full min-h-[31rem] flex-col overflow-hidden border transition ${
+									isUnavailable
+										? 'border-[rgba(148,163,184,0.22)] opacity-85 hover:border-[rgba(148,163,184,0.35)]'
+										: 'border-[rgba(249,197,19,0.22)] hover:border-[rgba(249,197,19,0.45)]'
+								}`}
 							>
-								<div className="flex items-start justify-between gap-2">
-								<h3 className="text-lg font-bold text-[var(--text-primary)] flex-1">
-									{item.name}
-								</h3>
-								<span
-									className={`shrink-0 px-2 py-1 rounded-lg text-xs font-semibold border ${
-										item.isArchived ? archivedBadgeClass() : statusBadgeClass(item.status)
-									}`}
+								<div
+									className="h-52 cursor-pointer bg-[var(--bg-darker)] md:h-56"
+									onClick={() => handleView(item)}
 								>
-									{item.isArchived ? 'Archived' : statusLabel(item.status)}
-								</span>
+									<img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
 								</div>
-								{item.isArchived ? (
-									<div className="mt-1 text-[11px] font-medium text-[var(--text-secondary)]">
-										Condition before archive: {statusLabel(item.status)}
-									</div>
-								) : null}
-								<div className="mt-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-3 py-2.5">
-									<div className="flex items-center justify-between text-xs">
-										<span className="text-[var(--text-secondary)]">Quantity</span>
-										<span className="text-sm font-semibold text-[var(--text-primary)]">
-											{Math.max(0, Number(item.quantity ?? 0))}
-										</span>
-									</div>
-									<div className="mt-1 flex items-center justify-between text-xs text-[var(--text-secondary)]">
-										<span>Availability</span>
-									<span
-										className={`font-semibold ${availabilityMeta.textClass}`}
-									>
-										{availabilityMeta.badge}
-									</span>
-									</div>
-									<div className="mt-2 border-t border-[rgba(255,255,255,0.06)] pt-2">
-										<div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
-											Upcoming usage
+								<div className="flex h-full flex-col p-5">
+									<div className="mb-2 cursor-pointer" onClick={() => handleView(item)}>
+										<div className="flex items-start justify-between gap-2">
+											<h3 className="text-lg font-bold text-[var(--text-primary)] flex-1">
+												{item.name}
+											</h3>
+											<span
+												className={`shrink-0 px-2 py-1 rounded-lg text-xs font-semibold border ${
+													item.isArchived ? archivedBadgeClass() : statusBadgeClass(item.status)
+												}`}
+											>
+												{item.isArchived ? 'Archived' : statusLabel(item.status)}
+											</span>
 										</div>
-										{usageRows.length > 0 ? (
-											<div className="space-y-1">
-											{usageRows.map((slot: any) => (
-												<div
-													key={`${slot.sessionId}-${slot.startTime}`}
-													className="text-[11px] text-[var(--text-secondary)]"
-												>
-													{slot.sessionName}: {' '}
-													{formatUsageScheduleLabel(
-														slot.date,
-														slot.startTime,
-														slot.endTime
-													)}{' '}
-													(qty {slot.quantity})
+										{item.isArchived ? (
+											<div className="mt-1 text-[11px] font-medium text-[var(--text-secondary)]">
+												Condition before archive: {statusLabel(item.status)}
+											</div>
+										) : null}
+										<div className="mt-3 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-3 py-2.5">
+											<div className="flex items-center justify-between text-xs">
+												<span className="text-[var(--text-secondary)]">Quantity</span>
+												<span className="text-sm font-semibold text-[var(--text-primary)]">
+													{Math.max(0, Number(item.quantity ?? 0))}
+												</span>
+											</div>
+											<div className="mt-1 flex items-center justify-between text-xs text-[var(--text-secondary)]">
+												<span>Availability</span>
+												<span className={`font-semibold ${availabilityMeta.textClass}`}>
+													{availabilityMeta.badge}
+												</span>
+											</div>
+											<div className="mt-2 border-t border-[rgba(255,255,255,0.06)] pt-2">
+												<div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+													Upcoming usage
 												</div>
-											))}
+												{usageRows.length > 0 ? (
+													<div className="space-y-1">
+														{usageRows.map((slot: any) => (
+															<div
+																key={`${slot.sessionId}-${slot.startTime}`}
+																className="text-[11px] text-[var(--text-secondary)]"
+															>
+																{slot.sessionName}:{' '}
+																{formatUsageScheduleLabel(slot.date, slot.startTime, slot.endTime)}{' '}
+																(qty {slot.quantity})
+															</div>
+														))}
+													</div>
+												) : (
+													<div className="text-[11px] text-[var(--text-secondary)]/80">
+														No upcoming usage yet.
+													</div>
+												)}
 											</div>
-										) : (
-											<div className="text-[11px] text-[var(--text-secondary)]/80">
-												No upcoming usage yet.
-											</div>
-										)}
+										</div>
 									</div>
-								</div>
-							</div>
-							{(item.description || item.notes) && (
-								<div className="mb-4 cursor-pointer space-y-2" onClick={() => handleView(item)}>
-									{item.description ? (
-										<p className="text-sm text-[var(--text-secondary)] line-clamp-2">
-											{item.description}
-										</p>
-									) : null}
-									{item.notes ? (
-										<p className="text-xs text-[var(--text-secondary)] line-clamp-3 italic border-l-2 border-[var(--primary-yellow)] pl-2">
-											{item.notes}
-										</p>
-									) : null}
-								</div>
-							)}
-							<div className="mb-4 cursor-pointer space-y-1 text-xs text-[var(--text-secondary)]" onClick={() => handleView(item)}>
-								<div>
-									Added:{' '}
-									{item.createdAt
-										? new Date(item.createdAt).toLocaleDateString('en-PH', {
-												timeZone: 'Asia/Manila',
-											})
-										: 'N/A'}
-								</div>
-								{item.status === EquipmentStatus.Undermaintenance ? (
-									<div>
-										Under maintenance since:{' '}
-										{formatDateManila(
-											item.maintenanceStartedAt || maintenanceSetAtByEquipmentId[item.id]
-										)}
-									</div>
-								) : null}
-								{item.isArchived ? (
-									<>
+									{(item.description || item.notes) && (
+										<div className="mb-4 cursor-pointer space-y-2" onClick={() => handleView(item)}>
+											{item.description ? (
+												<p className="text-sm text-[var(--text-secondary)] line-clamp-2">
+													{item.description}
+												</p>
+											) : null}
+											{item.notes ? (
+												<p className="text-xs text-[var(--text-secondary)] line-clamp-3 italic border-l-2 border-[var(--primary-yellow)] pl-2">
+													{item.notes}
+												</p>
+											) : null}
+										</div>
+									)}
+									<div
+										className="mb-4 cursor-pointer space-y-1 text-xs text-[var(--text-secondary)]"
+										onClick={() => handleView(item)}
+									>
 										<div>
-											Archived:{' '}
-											{item.archivedAt
-												? new Date(item.archivedAt).toLocaleDateString('en-PH', {
+											Added:{' '}
+											{item.createdAt
+												? new Date(item.createdAt).toLocaleDateString('en-PH', {
 														timeZone: 'Asia/Manila',
 													})
 												: 'N/A'}
 										</div>
-										<div>Reason: {item.archiveReason || 'N/A'}</div>
-									</>
-								) : null}
-							</div>
-							<div className="mt-auto flex gap-3 pt-2">
-								{item.isArchived ? (
-									<button
-										type="button"
-										onClick={(e) => {
-											e.stopPropagation();
-											handleRestore(item);
-										}}
-										disabled={restoring}
-										className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(16,185,129,0.35)] bg-[rgba(16,185,129,0.14)] px-4 text-sm font-semibold text-[#34D399] transition hover:bg-[rgba(16,185,129,0.2)] disabled:opacity-60"
-									>
-										{restoring ? 'Restoring...' : 'Restore'}
-									</button>
-								) : (
-									<div className="flex w-full gap-3">
-										<div className="flex-1">
-										<button
-											type="button"
-											onClick={(e) => {
-												e.stopPropagation();
-												handleEdit(item);
-											}}
-											className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[rgba(249,197,19,0.35)] bg-[rgba(249,197,19,0.14)] px-4 text-sm font-semibold text-[var(--primary-yellow)] transition hover:bg-[rgba(249,197,19,0.22)]"
-										>
-											Edit
-										</button>
-										</div>
-										<button
-											type="button"
-											onClick={(e) => {
-												e.stopPropagation();
-												handleDelete(item);
-											}}
-											className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.14)] px-4 text-sm font-semibold text-[#F87171] transition hover:bg-[rgba(239,68,68,0.22)]"
-										>
-											Archive
-										</button>
+										{item.status === EquipmentStatus.Undermaintenance ? (
+											<div>
+												Under maintenance since:{' '}
+												{formatDateManila(
+													item.maintenanceStartedAt || maintenanceSetAtByEquipmentId[item.id]
+												)}
+											</div>
+										) : null}
+										{item.isArchived ? (
+											<>
+												<div>
+													Archived:{' '}
+													{item.archivedAt
+														? new Date(item.archivedAt).toLocaleDateString('en-PH', {
+																timeZone: 'Asia/Manila',
+															})
+														: 'N/A'}
+												</div>
+												<div>Reason: {item.archiveReason || 'N/A'}</div>
+											</>
+										) : null}
 									</div>
-								)}
+									<div className="mt-auto flex gap-3 pt-2">
+										{item.isArchived ? (
+											<button
+												type="button"
+												onClick={(e) => {
+													e.stopPropagation();
+													handleRestore(item);
+												}}
+												disabled={restoring}
+												className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(16,185,129,0.35)] bg-[rgba(16,185,129,0.14)] px-4 text-sm font-semibold text-[#34D399] transition hover:bg-[rgba(16,185,129,0.2)] disabled:opacity-60"
+											>
+												{restoring ? 'Restoring...' : 'Restore'}
+											</button>
+										) : (
+											<div className="flex w-full gap-3">
+												<div className="flex-1">
+													<button
+														type="button"
+														onClick={(e) => {
+															e.stopPropagation();
+															handleEdit(item);
+														}}
+														className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-[rgba(249,197,19,0.35)] bg-[rgba(249,197,19,0.14)] px-4 text-sm font-semibold text-[var(--primary-yellow)] transition hover:bg-[rgba(249,197,19,0.22)]"
+													>
+														Edit
+													</button>
+												</div>
+												<button
+													type="button"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleDelete(item);
+													}}
+													className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.14)] px-4 text-sm font-semibold text-[#F87171] transition hover:bg-[rgba(239,68,68,0.22)]"
+												>
+													Archive
+												</button>
+											</div>
+										)}
+									</div>
+								</div>
 							</div>
-						</div>
-					</div>
 						);
 					})()
-				))}
+				)}
 			</div>
 
 			{useLegacyApi ? (
@@ -1621,8 +1640,8 @@ export function EquipmentPage() {
 			) : !useEnhancedAvailabilityQuery ? (
 				<div className="rounded-xl border border-[rgba(245,158,11,0.35)] bg-[rgba(245,158,11,0.1)] px-4 py-3">
 					<p className="text-sm text-[#FCD34D]">
-						Availability compatibility mode is active. Upcoming usage details may be limited until the
-						latest API schema is deployed.
+						Availability compatibility mode is active. Upcoming usage details may be limited until
+						the latest API schema is deployed.
 					</p>
 				</div>
 			) : null}
@@ -1776,7 +1795,8 @@ export function EquipmentPage() {
 						<div className="modal-body">
 							<h2 className="text-xl font-semibold text-[var(--text-primary)]">Adjust stock</h2>
 							<p className="mt-1 text-sm text-[var(--text-secondary)]">
-								{stockTarget.name} - current quantity: {Math.max(0, Number(stockTarget.quantity ?? 0))}
+								{stockTarget.name} - current quantity:{' '}
+								{Math.max(0, Number(stockTarget.quantity ?? 0))}
 							</p>
 
 							<div className="mt-4 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] p-3">

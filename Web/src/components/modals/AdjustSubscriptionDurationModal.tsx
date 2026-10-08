@@ -63,7 +63,11 @@ export function AdjustSubscriptionDurationModal({
 		onCompleted: (data) => {
 			const exp = data.updateMembershipTransactionDuration.expiresAt;
 			const expStr = exp
-				? new Date(exp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+				? new Date(exp).toLocaleDateString('en-US', {
+						month: 'short',
+						day: 'numeric',
+						year: 'numeric',
+					})
 				: '';
 			const d = data.updateMembershipTransactionDuration.dayDuration;
 			const m = data.updateMembershipTransactionDuration.monthDuration;
@@ -88,8 +92,20 @@ export function AdjustSubscriptionDurationModal({
 		},
 	});
 
-	const buildInput = (): { transactionId: string; monthDuration?: number; dayDuration?: number; startedAt?: string; reason: string } => {
-		const base: { transactionId: string; monthDuration?: number; dayDuration?: number; startedAt?: string; reason: string } = {
+	const buildInput = (): {
+		transactionId: string;
+		monthDuration?: number;
+		dayDuration?: number;
+		startedAt?: string;
+		reason: string;
+	} => {
+		const base: {
+			transactionId: string;
+			monthDuration?: number;
+			dayDuration?: number;
+			startedAt?: string;
+			reason: string;
+		} = {
 			transactionId,
 			reason: adjustmentReason.trim(),
 		};
@@ -166,10 +182,10 @@ export function AdjustSubscriptionDurationModal({
 						<div
 							className="modal-success-icon-large"
 							style={{
-								background: 'linear-gradient(135deg, var(--primary-red), var(--primary-yellow))',
+								background: 'var(--primary-yellow)',
 							}}
 						>
-							<Calendar size={48} style={{ color: 'white' }} />
+							<Calendar size={48} style={{ color: '#090b0d' }} />
 						</div>
 					</div>
 
@@ -179,11 +195,14 @@ export function AdjustSubscriptionDurationModal({
 
 					<p className="modal-text" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
 						Set total {usesDays ? 'calendar days' : 'months'} from the subscription start date for{' '}
-						<strong>{memberName}</strong>. You can optionally override the start date (for walk-ins or legacy
-						records); expiry is recalculated from that start and the length below.
+						<strong>{memberName}</strong>. You can optionally override the start date (for walk-ins
+						or legacy records); expiry is recalculated from that start and the length below.
 					</p>
 
-					<label className="block text-sm text-[var(--text-secondary)] mb-2" htmlFor="sub-start-override">
+					<label
+						className="block text-sm text-[var(--text-secondary)] mb-2"
+						htmlFor="sub-start-override"
+					>
 						Subscription start date (optional)
 					</label>
 					<input
@@ -194,10 +213,13 @@ export function AdjustSubscriptionDurationModal({
 						className="w-full px-4 py-3 rounded-lg bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.12)] text-[var(--text-primary)] mb-4"
 					/>
 					<p className="text-xs text-[var(--text-secondary)] mb-4 -mt-2">
-						Leave as shown to keep the current start; change it to align walk-in or backdated subscriptions with
-						manual subscribe behavior.
+						Leave as shown to keep the current start; change it to align walk-in or backdated
+						subscriptions with manual subscribe behavior.
 					</p>
-					<label className="block text-sm text-[var(--text-secondary)] mb-2" htmlFor="sub-adjust-reason">
+					<label
+						className="block text-sm text-[var(--text-secondary)] mb-2"
+						htmlFor="sub-adjust-reason"
+					>
 						Reason <span className="text-red-400">*</span>
 					</label>
 					<input
@@ -225,7 +247,10 @@ export function AdjustSubscriptionDurationModal({
 						</>
 					) : (
 						<>
-							<label className="block text-sm text-[var(--text-secondary)] mb-2" htmlFor="sub-months">
+							<label
+								className="block text-sm text-[var(--text-secondary)] mb-2"
+								htmlFor="sub-months"
+							>
 								Total duration (months)
 							</label>
 							<input
@@ -239,13 +264,21 @@ export function AdjustSubscriptionDurationModal({
 						</>
 					)}
 
-					<div className="modal-actions" style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+					<div
+						className="modal-actions"
+						style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}
+					>
 						<button
 							type="button"
 							className="btn-secondary"
 							onClick={onClose}
 							disabled={loading}
-							style={{ flex: 1, padding: '0.75rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600 }}
+							style={{
+								flex: 1,
+								padding: '0.75rem 1.5rem',
+								borderRadius: '0.75rem',
+								fontWeight: 600,
+							}}
 						>
 							<X className="w-4 h-4 inline mr-1" />
 							Cancel
@@ -255,7 +288,12 @@ export function AdjustSubscriptionDurationModal({
 							className="btn-primary"
 							onClick={handleSubmit}
 							disabled={loading}
-							style={{ flex: 1, padding: '0.75rem 1.5rem', borderRadius: '0.75rem', fontWeight: 600 }}
+							style={{
+								flex: 1,
+								padding: '0.75rem 1.5rem',
+								borderRadius: '0.75rem',
+								fontWeight: 600,
+							}}
 						>
 							{loading ? (
 								<>

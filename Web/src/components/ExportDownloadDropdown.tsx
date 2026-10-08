@@ -38,7 +38,7 @@ export function ExportDownloadDropdown({
 					disabled={disabled}
 					className={cn(
 						'flex shrink-0 items-center gap-2 px-4 py-2.5 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl text-[var(--text-primary)] text-sm font-medium hover:border-[var(--primary-yellow)] hover:bg-[rgba(249,197,19,0.08)] transition-all focus:outline-none focus:border-[var(--primary-yellow)] focus:ring-[3px] focus:ring-[rgba(249,197,19,0.15)] disabled:pointer-events-none disabled:opacity-45',
-						className,
+						className
 					)}
 					aria-label={ariaLabel}
 				>
@@ -47,7 +47,7 @@ export function ExportDownloadDropdown({
 					<ChevronDown
 						className={cn(
 							'w-4 h-4 text-[var(--text-secondary)] transition-transform',
-							open && 'rotate-180',
+							open && 'rotate-180'
 						)}
 						aria-hidden
 					/>
@@ -64,7 +64,7 @@ export function ExportDownloadDropdown({
 						onClick={() => run(onExportPdf)}
 						className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.06)] transition-colors"
 					>
-						<Download className="h-4 w-4 shrink-0 text-[#fb923c]" aria-hidden />
+						<Download className="h-4 w-4 shrink-0 text-[var(--primary-yellow)]" aria-hidden />
 						<span>Export as PDF</span>
 					</button>
 					<button
